@@ -1,0 +1,62 @@
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
+COMMENT = _{ "/*" ~ (!"*/" ~ ANY)* ~ "*/" }
+
+config = { SOI ~ config_block*  ~ EOI }
+config_block = { config_type ~ "{" ~ plugin* ~ "}" }
+config_type = { ASCII_ALPHANUMERIC+ }
+plugin = { plugin_name ~ "{" ~ plugin_setting* ~ "}" }
+plugin_name = { (ASCII_ALPHANUMERIC | "_")+ }
+plugin_setting = { setting_key ~ "=>" ~ setting_value }
+
+setting_key = {
+	("\"" ~ (ASCII_ALPHANUMERIC | "_")+ ~ "\"") |
+    (ASCII_ALPHANUMERIC | "_")+
+}
+setting_value = { boolean | variable | string | array | object }
+
+string = ${ "\"" ~ inner ~ "\"" }
+inner = @{ char* }
+char = {
+    !("\"" | "\\") ~ ANY
+    | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
+    | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
+}
+
+object = { "{" ~ plugin_setting*  ~ "}" }
+
+array = {
+    "[" ~ "]" |
+    "[" ~ setting_value ~ ("," ~ setting_value)* ~ "]"
+}
+
+variable = { (ASCII_ALPHANUMERIC)+ }
+boolean = { "true" | "false" }
+
+// Input - Stdin
+input_stdin_add_field = { array | object }
+input_stdin_codec = { string }
+input_stdin_enable_metric = { boolean }
+input_stdin_enable_id = { string }
+input_stdin_enable_tags = { array }
+input_stdin_enable_type= { string }
+input_stdin_value = {
+	input_stdin_add_field |
+	input_stdin_codec |
+    input_stdin_enable_metric |
+    input_stdin_enable_id |
+    input_stdin_enable_tags |
+    input_stdin_enable_type
+}
+
+// Filter - Grok
+filter_grok_break_on_match = { boolean }
+filter_grok_match = { object }
+filter_grok_value = {
+	filter_grok_match
+}
+
+// Output - Stdout
+output_stdout_codec = { variable }
+output_stdout_value = {
+	output_stdout_codec
+}

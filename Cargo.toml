@@ -1,0 +1,14 @@
+[package]
+authors = ["Andrew Banchich <andrewbanchich@gmail.com>"]
+edition = "2018"
+name = "emmett"
+version = "0.1.0"
+
+[dependencies]
+pest = "2.1.0"
+pest_derive = "2.1.0"
+url = "1.7.2"
+hyper = "0.12.27"
+tokio = "0.1.18"
+futures = "0.1.26"
+reqwest = "0.9.15"
