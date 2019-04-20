@@ -8,12 +8,20 @@ use serde_json::value::Value;
 use std::collections::HashMap;
 use std::path::Path;
 
+use rusoto_credential::StaticProvider;
+use rusoto_core::{Region, request::HttpClient};
+use rusoto_s3::S3Client;
+
+
 impl<'a> Stream for S3Input<'a> {
 
     type Item = String;
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
+
+        let creds = StaticProvider::new("key".to_string(), "secret_key".to_string(), None, None);
+        let client = S3Client::new_with(HttpClient::new().unwrap(), creds, Region::UsEast1);
 
         sleep(Duration::from_millis(1000));
         
