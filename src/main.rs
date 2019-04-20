@@ -1,8 +1,13 @@
 use pest_derive::Parser;
 use futures::future::lazy;
+use futures::stream::Stream;
 
 pub mod plugins;
 use plugins::input;
+
+use futures::sync::mpsc;
+use serde_json::value::Value;
+use futures::sync::mpsc::{Sender, Receiver};
 
 #[derive(Parser)]
 #[grammar = "logstash.pest"]
@@ -10,25 +15,39 @@ pub struct ConfigParser;
 
 fn main() {
 
+    let logo = r#"
+___________                       __    __   
+\_   _____/ /\_/\   _____   _____/  |__/  |_ 
+ |    __)_ /     \ /     \_/ __ \   __\   __\
+ |        \  o o  \  Y Y  \  ___/|  |  |  |  
+/_______  /\ |-| _/__|_|  /\___  >__|  |__|  
+        \/  |           \/     \/            
+"#;
+
+    println!("{}", logo);
+
+    let (tx, rx): (Sender<Value>, Receiver<Value>)  = mpsc::channel(1_024);
+    
     let http_poller = input::HttpPollerInput::new(
-        10000,
+        5000,
         vec!["http://httpbin.org/ip"]
     );
 
     let s3_poller = input::S3Input::new("test");
 
-    let poller = plugins::Plugin(http_poller);
-    let s3_plugin = plugins::Plugin(s3_poller);
+    let poller = plugins::Plugin(http_poller, tx.clone());
+    let s3_plugin = plugins::Plugin(s3_poller, tx.clone());
     
     tokio::run(lazy(move || {
         
         tokio::spawn(poller);
         tokio::spawn(s3_plugin);
 
-        println!("hello");
-
-        Ok(())
-
+        rx.for_each(|message| {
+            dbg!(message);
+            Ok(())
+        })
+            
     }));
     
 }

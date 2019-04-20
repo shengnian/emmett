@@ -24,14 +24,13 @@ impl<'a> Stream for HttpPollerInput<'a> {
 
         let mut uri_stream = iter_ok(self.urls.to_owned())
             .and_then(|uri| {
-                                
-                let res: Value = client.get(uri)
-                    .send()
-                    .unwrap()
+
+                let res = client.get(uri)
+                    .send();
+
+                res.expect("HttpPollerInput couldn't unwrap response.")
                     .json()
-                    .unwrap();
-                    
-                Ok(res)
+                    .map_err(|_| ())
 
             });
 

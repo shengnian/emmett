@@ -2,11 +2,12 @@ pub mod input;
 pub mod filter;
 pub mod output;
 
-use futures::{Future, Poll, Stream, try_ready};
+use futures::{Future, Poll, Stream, try_ready, Sink};
 use std::collections::HashMap;
 use std::fmt::{Display, Debug};
+use futures::sync::mpsc::Sender;
 
-pub struct Plugin<T: Stream>(pub T);
+pub struct Plugin<T: Stream, M>(pub T, pub Sender<M>);
 
 #[allow(unused)]
 struct CommonOptions<'a> {
@@ -18,7 +19,7 @@ struct CommonOptions<'a> {
     r#type: Option<&'a str>
 }
 
-impl<T> Future for Plugin<T>
+impl<T> Future for Plugin<T, <T as Stream>::Item>
 where
     T: Stream,
     T::Item: Display,
@@ -26,14 +27,22 @@ where
 {
 
     type Item = ();
-    type Error = T::Error;
+    type Error = ();
 
     fn poll(&mut self) -> Poll<(), Self::Error> {
 
         loop {
-            if let Some(message) = try_ready!(self.0.poll()) {
-                dbg!(message);
-                // process message here
+
+            let message = self.0.poll().map_err(|_| ());
+            
+            if let Some(message) = try_ready!(message) {
+
+                let mut send = self.1.to_owned()
+                    .send(message)
+                    .map_err(|_| ());
+
+                try_ready!(send.poll());
+                
             }
         }
 

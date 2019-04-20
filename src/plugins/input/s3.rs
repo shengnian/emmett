@@ -4,7 +4,7 @@ use std::time::Duration;
 use futures::{stream::iter_ok, Stream, Poll, Async, try_ready};
 use std::thread::sleep;
 use reqwest::{ClientBuilder, RedirectPolicy};
-use serde_json::value::Value;
+use serde_json::{json, value::Value};
 use std::collections::HashMap;
 use std::path::Path;
 
@@ -15,7 +15,7 @@ use rusoto_s3::S3Client;
 
 impl<'a> Stream for S3Input<'a> {
 
-    type Item = String;
+    type Item = Value;
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
@@ -24,8 +24,10 @@ impl<'a> Stream for S3Input<'a> {
         let client = S3Client::new_with(HttpClient::new().unwrap(), creds, Region::UsEast1);
 
         sleep(Duration::from_millis(1000));
+
+        let message = json!("{ message: 'hello' }");
         
-        Ok(Async::Ready(Some("s3 message".to_string())))
+        Ok(Async::Ready(Some(message)))
             
     }
     
