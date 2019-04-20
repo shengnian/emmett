@@ -1,27 +1,36 @@
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-http_poller.html
 
 use std::time::Duration;
-use futures::{future::lazy, stream::iter_ok, Stream, Poll, Async, try_ready};
+use futures::{stream::iter_ok, Stream, Poll, Async, try_ready};
 use std::thread::sleep;
-use reqwest::get;
+use reqwest::{ClientBuilder, RedirectPolicy};
+use serde_json::value::Value;
 
-impl Stream for HttpPollerInput {
+use std::path::Path;
 
-    type Item = String;
+impl<'a> Stream for HttpPollerInput<'a> {
+
+    type Item = Value;
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
+
+        let client = ClientBuilder::new()
+            .redirect(RedirectPolicy::default())
+            .build()
+            .unwrap();
         
         sleep(Duration::from_millis(self.schedule));
 
         let mut uri_stream = iter_ok(self.urls.to_owned())
             .and_then(|uri| {
                                 
-                let res = get(&uri)
+                let res: Value = client.get(uri)
+                    .send()
                     .unwrap()
-                    .text()
+                    .json()
                     .unwrap();
-
+                    
                 Ok(res)
 
             });
@@ -35,64 +44,66 @@ impl Stream for HttpPollerInput {
 }
     
 #[derive(Debug)]
-pub struct HttpPollerInput {
-    user: Option<String>,
-    password: Option<String>,
+pub struct HttpPollerInput<'a> {
+    user: Option<&'a str>,
+    password: Option<&'a str>,
     automatic_retries: Option<u64>,
-    cacert: Option<String>,
-    client_cert: Option<String>,
-    client_key: Option<String>,
+    cacert: Option<&'a Path>,
+    client_cert: Option<&'a Path>,
+    client_key: Option<&'a Path>,
     connect_timeout: Option<u64>,
     cookies: Option<bool>,
     follow_redirects: Option<bool>,
-    keystore: Option<String>,
-    keystore_password: Option<String>,
-    keystore_type: Option<String>,
-    metadata_target: Option<String>,
+    keepalive: Option<bool>,
+    keystore: Option<&'a Path>,
+    keystore_password: Option<&'a str>,
+    keystore_type: Option<&'a str>,
+    metadata_target: Option<&'a str>,
     pool_max: Option<u64>,
     pool_max_per_route: Option<u64>,
-    proxy: Option<String>,
+    proxy: Option<&'a str>,
     request_timeout: Option<u64>,
     retry_non_idempotent: Option<bool>,
     schedule: u64,
     socket_timeout: Option<u64>,
-    target: Option<String>,
-    truststore: Option<String>,
-    truststore_password: Option<String>,
-    truststore_type: Option<String>,
-    urls: Vec<String>,
+    target: Option<&'a str>,
+    truststore: Option<&'a Path>,
+    truststore_password: Option<&'a str>,
+    truststore_type: Option<&'a str>,
+    urls: Vec<&'a str>,
     validate_after_inactivity: Option<u64>
 }
 
-impl HttpPollerInput {
-    pub fn new(schedule: u64, urls: Vec<String>) -> Self {
+impl<'a> HttpPollerInput<'a> {
+    pub fn new(schedule: u64, urls: Vec<&'a str>) -> Self {
         Self {
             user: None,
             password: None,
-            automatic_retries: None,
+            automatic_retries: Some(1),
             cacert: None,
             client_cert: None,
             client_key: None,
-            connect_timeout: None,
-            cookies: None,
-            follow_redirects: None,
+            connect_timeout: Some(10),
+            cookies: Some(true),
+            follow_redirects: Some(true),
+            keepalive: Some(true),
             keystore: None,
             keystore_password: None,
-            keystore_type: None,
-            metadata_target: None,
-            pool_max: None,
-            pool_max_per_route: None,
+            keystore_type: Some("JKS"),
+            metadata_target: Some("@metadata"),
+            pool_max: Some(50),
+            pool_max_per_route: Some(25),
             proxy: None,
-            request_timeout: None,
-            retry_non_idempotent: None,
+            request_timeout: Some(60),
+            retry_non_idempotent: Some(false),
             schedule,
-            socket_timeout: None,
+            socket_timeout: Some(10),
             target: None,
             truststore: None,
             truststore_password: None,
-            truststore_type: None,
+            truststore_type: Some("JKS"),
             urls,
-            validate_after_inactivity: None,
+            validate_after_inactivity: Some(200),
         }
     }        
 }

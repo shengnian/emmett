@@ -1,8 +1,8 @@
 use pest_derive::Parser;
-use futures::{future::lazy, sync::mpsc};
+use futures::future::lazy;
 
 pub mod plugins;
-use plugins::{input, filter, output};
+use plugins::input;
 
 #[derive(Parser)]
 #[grammar = "logstash.pest"]
@@ -11,17 +11,19 @@ pub struct ConfigParser;
 fn main() {
 
     let http_poller = input::HttpPollerInput::new(
-        1000,
-        vec!["http://httpbin.org/ip".to_string()]
+        10000,
+        vec!["http://httpbin.org/ip"]
     );
 
-    let poller = plugins::Plugin(http_poller);
+    let s3_poller = input::S3Input::new("test");
 
+    let poller = plugins::Plugin(http_poller);
+    let s3_plugin = plugins::Plugin(s3_poller);
+    
     tokio::run(lazy(move || {
         
-        // let (tx, rx) = mpsc::channel(1_024);
-
         tokio::spawn(poller);
+        tokio::spawn(s3_plugin);
 
         println!("hello");
 

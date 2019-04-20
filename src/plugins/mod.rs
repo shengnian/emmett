@@ -2,30 +2,56 @@ pub mod input;
 pub mod filter;
 pub mod output;
 
-use std::fmt::{Debug, Display};
 use futures::{Future, Poll, Stream, try_ready};
-
+use std::collections::HashMap;
+    
 pub struct Plugin<T: Stream>(pub T);
 
-impl Future for Plugin<input::HttpPollerInput>
-where
- {
+#[allow(unused)]
+struct CommonOptions<'a> {
+    add_field: Option<HashMap<&'a str, &'a str>>,
+    codec: Option<&'a str>,
+    enable_metric: Option<bool>,
+    id: Option<&'a str>,
+    tags: Option<Vec<&'a str>>,
+    r#type: Option<&'a str>
+}
+
+impl<'a> Future for Plugin<input::HttpPollerInput<'a>> {
+
     type Item = ();
     type Error = ();
 
     fn poll(&mut self) -> Poll<(), Self::Error> {
 
         loop {
-            let message = try_ready!(self.0.poll());
-            dbg!(message);
-            // process message here
+            if let Some(message) = try_ready!(self.0.poll()) {
+                dbg!(message);
+                // process message here
+            }
         }
-        
-        // Ok(Async::Ready(()))
 
     }
 
- }
+}
+
+impl<'a> Future for Plugin<input::S3Input<'a>> {
+
+    type Item = ();
+    type Error = ();
+
+    fn poll(&mut self) -> Poll<(), Self::Error> {
+
+        loop {
+            if let Some(message) = try_ready!(self.0.poll()) {
+                dbg!(message);
+                // process message here
+            }
+        }
+
+    }
+
+}
 
 // pub fn from_pair<T>(config_block: &str, plugin: Pair<Rule>) -> Box<dyn Plugin> {
 
