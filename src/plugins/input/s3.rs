@@ -1,9 +1,8 @@
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-s3.html
 
 use std::time::Duration;
-use futures::{stream::iter_ok, Stream, Poll, Async, try_ready};
+use futures::{Stream, Poll, Async};
 use std::thread::sleep;
-use reqwest::{ClientBuilder, RedirectPolicy};
 use serde_json::{json, value::Value};
 use std::collections::HashMap;
 use std::path::Path;
@@ -11,7 +10,6 @@ use std::path::Path;
 use rusoto_credential::StaticProvider;
 use rusoto_core::{Region, request::HttpClient};
 use rusoto_s3::S3Client;
-
 
 impl<'a> Stream for S3Input<'a> {
 
@@ -21,7 +19,7 @@ impl<'a> Stream for S3Input<'a> {
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
 
         let creds = StaticProvider::new("key".to_string(), "secret_key".to_string(), None, None);
-        let client = S3Client::new_with(HttpClient::new().unwrap(), creds, Region::UsEast1);
+        let _client = S3Client::new_with(HttpClient::new().unwrap(), creds, Region::UsEast1);
 
         sleep(Duration::from_millis(1000));
 

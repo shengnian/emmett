@@ -26,7 +26,7 @@ ___________                       __    __
 
     println!("{}", logo);
 
-    let (tx, rx): (Sender<Value>, Receiver<Value>)  = mpsc::channel(1_024);
+    let (input_tx, filter_rx): (Sender<Value>, Receiver<Value>)  = mpsc::channel(1_024);
     
     let http_poller = input::HttpPollerInput::new(
         5000,
@@ -35,15 +35,15 @@ ___________                       __    __
 
     let s3_poller = input::S3Input::new("test");
 
-    let poller = plugins::Plugin(http_poller, tx.clone());
-    let s3_plugin = plugins::Plugin(s3_poller, tx.clone());
+    let poller = plugins::Plugin(http_poller, input_tx.clone());
+    let s3_plugin = plugins::Plugin(s3_poller, input_tx.clone());
     
     tokio::run(lazy(move || {
         
         tokio::spawn(poller);
         tokio::spawn(s3_plugin);
 
-        rx.for_each(|message| {
+        filter_rx.for_each(|message| {
             dbg!(message);
             Ok(())
         })
