@@ -4,7 +4,8 @@ pub mod output;
 
 use futures::{Future, Poll, Stream, try_ready};
 use std::collections::HashMap;
-    
+use std::fmt::{Display, Debug};
+
 pub struct Plugin<T: Stream>(pub T);
 
 #[allow(unused)]
@@ -17,28 +18,15 @@ struct CommonOptions<'a> {
     r#type: Option<&'a str>
 }
 
-impl<'a> Future for Plugin<input::HttpPollerInput<'a>> {
+impl<T> Future for Plugin<T>
+where
+    T: Stream,
+    T::Item: Display,
+    T::Item: Debug
+{
 
     type Item = ();
-    type Error = ();
-
-    fn poll(&mut self) -> Poll<(), Self::Error> {
-
-        loop {
-            if let Some(message) = try_ready!(self.0.poll()) {
-                dbg!(message);
-                // process message here
-            }
-        }
-
-    }
-
-}
-
-impl<'a> Future for Plugin<input::S3Input<'a>> {
-
-    type Item = ();
-    type Error = ();
+    type Error = T::Error;
 
     fn poll(&mut self) -> Poll<(), Self::Error> {
 
