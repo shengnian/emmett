@@ -3,7 +3,7 @@ use futures::future::lazy;
 use futures::stream::Stream;
 
 pub mod plugins;
-use plugins::input;
+use plugins::{input, Plugin};
 
 use futures::sync::mpsc;
 use serde_json::value::Value;
@@ -16,12 +16,7 @@ pub struct ConfigParser;
 fn main() {
 
     let logo = r#"
-___________                       __    __   
-\_   _____/ /\_/\   _____   _____/  |__/  |_ 
- |    __)_ /     \ /     \_/ __ \   __\   __\
- |        \  o o  \  Y Y  \  ___/|  |  |  |  
-/_______  /\ |-| _/__|_|  /\___  >__|  |__|  
-        \/  |           \/     \/            
+(=^•ω•^=) Emmett v0.1.0
 "#;
 
     println!("{}", logo);
@@ -30,13 +25,13 @@ ___________                       __    __
     
     let http_poller = input::HttpPollerInput::new(
         5000,
-        vec!["http://httpbin.org/ip"]
+        vec!["http://ip-api.com/json/?fields=city,zip,lat,lon,isp"]
     );
 
     let s3_poller = input::S3Input::new("test");
 
-    let poller = plugins::Plugin(http_poller, input_tx.clone());
-    let s3_plugin = plugins::Plugin(s3_poller, input_tx.clone());
+    let poller = Plugin(http_poller, input_tx.clone());
+    let s3_plugin = Plugin(s3_poller, input_tx.clone());
     
     tokio::run(lazy(move || {
         
