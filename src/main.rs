@@ -1,13 +1,8 @@
 use pest_derive::Parser;
-use futures::future::lazy;
-use futures::stream::Stream;
+use futures::{stream::Stream, future::lazy, sync::mpsc};
 
 pub mod plugins;
 use plugins::{input, Plugin};
-
-use futures::sync::mpsc;
-use serde_json::value::Value;
-use futures::sync::mpsc::{Sender, Receiver};
 
 #[derive(Parser)]
 #[grammar = "logstash.pest"]
@@ -21,7 +16,7 @@ fn main() {
 
     println!("{}", logo);
 
-    let (input_tx, filter_rx): (Sender<Value>, Receiver<Value>)  = mpsc::channel(1_024);
+    let (input_tx, filter_rx) = mpsc::channel(1_024);
     
     let http_poller = input::HttpPollerInput::new(
         5000,
