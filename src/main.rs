@@ -1,3 +1,5 @@
+use log::{trace, debug, error};
+use structopt::{self, StructOpt};
 use pest_derive::Parser;
 use futures::{stream::Stream, future::lazy, sync::mpsc, Future, sink::Sink};
 
@@ -8,9 +10,20 @@ use plugins::{input, filter, input::Input, filter::Filter};
 #[grammar = "logstash.pest"]
 pub struct ConfigParser;
 
+#[derive(Debug, StructOpt)]
+#[structopt(name = "Emmett", about = "An ETL tool.", author = "Andrew Banchich")]
+struct Opt {
+    #[structopt(short = "d", long = "debug")]
+    debug: bool
+}
+
 fn main() {
 
     let logo = r#"
+(=^•ω•^=)
+"#;
+
+    let _alt_logo = r#"
     ______                         __  __ 
    / ____/___ ___  ____ ___  ___  / /_/ /_
   / __/ / __ `__ \/ __ `__ \/ _ \/ __/ __/
@@ -19,9 +32,10 @@ fn main() {
 
 "#;
 
-// (=^•ω•^=)
-
     println!("{}", logo);
+
+    env_logger::init();
+    let opt = Opt::from_args();
 
     let (input_sender, filter_receiver) = mpsc::channel(1_024);
 
@@ -37,7 +51,7 @@ fn main() {
     let s3_plugin = Input::S3(s3_poller, input_sender.clone());
 
     // create some filters
-    let geoip = Filter::Geoip(filter::GeoipFilter::new("test"));
+    let geoip = Filter::Geoip(filter::GeoipFilter::new("ip"));
     let date = Filter::Date(filter::DateFilter::new());
 
     // config blocks
@@ -51,6 +65,8 @@ fn main() {
         let (filter_sender, output_receiver) = mpsc::channel(1_024);
         
         let filter = filter_receiver.for_each(move |message| {
+
+            dbg!(&message);
 
             let message = filters.iter()
                 .fold(message, |acc, x| x.process(acc));
@@ -78,18 +94,6 @@ fn main() {
     }));
     
 }
-
-// fn test(input: &str) -> Box<dyn Run> {
-//     if input == "one" {
-//         Box::new(HttpPollerInput::new(
-//             "test".to_string(),
-//             vec!["http://httpbin.org/ip".to_string(), "http://google.com".to_string()]
-//         ))
-//     } else {
-//         Box::new(plugins::StdinInput::new())
-//     }
-// }
-
 
 // #[derive(Debug)]
 // pub struct Pipeline {

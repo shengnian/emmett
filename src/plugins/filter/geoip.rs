@@ -1,15 +1,17 @@
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-filters-geoip.html
 
-use serde_json::value::Value;
+use serde_json::{json, value::Value};
 use std::path::Path;
+use reqwest::get;
 
 impl<'a> GeoipFilter<'a> {
     pub fn process(&self, message: Value) -> Value {
 
-        if let Some(m) = message.get("date") {
-            message
+        if let Some(m) = message.get(self.source) {
+            let value = ip_api(m.as_str().unwrap());
+            json!({ "geoip": value })
         } else {
-            serde_json::json!({"no_date": "THERE IS NO DATE"})
+            json!({"no_date": "THERE IS NO DATE"})
         }
         
     }
@@ -38,4 +40,12 @@ impl<'a> GeoipFilter<'a> {
             target: Some("geoip")
         }
     }        
+}
+
+fn ip_api(ip: &str) -> Value {
+    let uri = format!("http://ip-api.com/json/{}", ip);
+    get(&uri)
+        .unwrap()
+        .json()
+        .unwrap()
 }

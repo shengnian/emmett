@@ -21,9 +21,9 @@ impl<'a> Stream for S3Input<'a> {
         let creds = StaticProvider::new("key".to_string(), "secret_key".to_string(), None, None);
         let _client = S3Client::new_with(HttpClient::new().unwrap(), creds, Region::UsEast1);
 
-        sleep(Duration::from_millis(1000));
+        sleep(Duration::from_millis(3000));
 
-        let message = json!({ "message": "hello" });
+        let message = json!({ "message": "hello", "ip": "8.8.8.8" });
         
         Ok(Async::Ready(Some(message)))
             
