@@ -5,7 +5,6 @@ use futures::{stream::iter_ok, Stream, Poll, Async, try_ready};
 use std::thread::sleep;
 use reqwest::{ClientBuilder, RedirectPolicy};
 use serde_json::value::Value;
-
 use std::path::Path;
 
 impl<'a> Stream for HttpPollerInput<'a> {

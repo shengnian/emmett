@@ -1,8 +1,8 @@
 use pest_derive::Parser;
-use futures::{stream::Stream, future::lazy, sync::mpsc};
+use futures::{stream::Stream, future::lazy, sync::mpsc, Future};
 
 pub mod plugins;
-use plugins::{input, Plugin};
+use plugins::{input, filter, input::Input};
 
 #[derive(Parser)]
 #[grammar = "logstash.pest"]
@@ -16,27 +16,36 @@ fn main() {
 
     println!("{}", logo);
 
-    let (input_tx, filter_rx) = mpsc::channel(1_024);
+    let (input_sender, filter_receiver) = mpsc::channel(1_024);
     
     let http_poller = input::HttpPollerInput::new(
         5000,
         vec!["http://ip-api.com/json/?fields=city,zip,lat,lon,isp"]
     );
-
     let s3_poller = input::S3Input::new("test");
+    let geoip = filter::GeoipFilter::new("test");
 
-    let poller = Plugin(http_poller, input_tx.clone());
-    let s3_plugin = Plugin(s3_poller, input_tx.clone());
-    
+    let poller = Input::HttpPoller(http_poller, input_sender.clone());
+    let s3_plugin = Input::S3(s3_poller, input_sender.clone());
+
+    let inputs = vec![poller, s3_plugin];
+
     tokio::run(lazy(move || {
-        
-        tokio::spawn(poller);
-        tokio::spawn(s3_plugin);
 
-        filter_rx.for_each(|message| {
-            dbg!(message);
+        for input in inputs {
+            tokio::spawn(input);
+        }
+
+        let filter = filter_receiver.for_each(move |message| {
+            let mut test = geoip.process(message);
+            // let res = try_ready!(test.poll());
+            let _test = dbg!(test.poll());
             Ok(())
-        })
+        });
+
+        tokio::spawn(filter);
+
+        Ok(())
             
     }));
     

@@ -2,53 +2,14 @@ pub mod input;
 pub mod filter;
 pub mod output;
 
-use futures::{Future, Poll, Stream, try_ready, Sink};
-use std::collections::HashMap;
-use std::fmt::{Display, Debug};
-use futures::sync::mpsc::Sender;
+// pub enum Input<'a, M> {
+//     HttpPoller(input::HttpPollerInput<'a>, Sender<M>),
+//     S3(input::S3Input<'a>, Sender<M>)
+// }
 
-pub struct Plugin<T: Stream, M>(pub T, pub Sender<M>);
+// #[derive(Debug)]
+// pub struct Filter<T: Stream>(pub Value, pub T);
 
-#[allow(unused)]
-struct CommonOptions<'a> {
-    add_field: Option<HashMap<&'a str, &'a str>>,
-    codec: Option<&'a str>,
-    enable_metric: Option<bool>,
-    id: Option<&'a str>,
-    tags: Option<Vec<&'a str>>,
-    r#type: Option<&'a str>
-}
-
-impl<T> Future for Plugin<T, <T as Stream>::Item>
-where
-    T: Stream,
-    T::Item: Display,
-    T::Item: Debug
-{
-
-    type Item = ();
-    type Error = ();
-
-    fn poll(&mut self) -> Poll<(), Self::Error> {
-
-        loop {
-
-            let message = self.0.poll().map_err(|_| ());
-            
-            if let Some(message) = try_ready!(message) {
-
-                let mut send = self.1.to_owned()
-                    .send(message)
-                    .map_err(|_| ());
-
-                try_ready!(send.poll());
-                
-            }
-        }
-
-    }
-
-}
 
 // pub fn from_pair<T>(config_block: &str, plugin: Pair<Rule>) -> Box<dyn Plugin> {
 
