@@ -23,7 +23,7 @@ impl<'a> Stream for S3Input<'a> {
 
         sleep(Duration::from_millis(1000));
 
-        let message = json!("{ message: 'hello' }");
+        let message = json!({ "message": "hello" });
         
         Ok(Async::Ready(Some(message)))
             

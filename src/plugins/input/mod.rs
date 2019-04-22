@@ -24,19 +24,24 @@ impl Future for Input {
         
         loop {
 
-            let message = match self {
-                Input::HttpPoller(p,_) => p.poll().map_err(|_| ()),
-                Input::S3(p,_) => p.poll().map_err(|_| ())
+            let poll = match self {
+                Input::HttpPoller(p,_) => p.poll(),
+                Input::S3(p,_) => p.poll()
             };
-            
-            if let Some(message) = try_ready!(message) {
+
+            if let Some(message) = try_ready!(poll) {
 
                 let send = match self {
                     Input::HttpPoller(_,s) => s,
                     Input::S3(_,s) => s
                 };
 
-                try_ready!(send.to_owned().send(message).map_err(|_| ()).poll());
+                let send = send.to_owned()
+                    .send(message)
+                    .map_err(|_| ())
+                    .poll();
+                
+                try_ready!(send);
                 
             }
         }
@@ -45,42 +50,6 @@ impl Future for Input {
 
 }
 
-// #[derive(Debug)]
-// pub struct Input<T: Stream, M>(pub T, pub M);
-
-// impl<T> Future for Input<T, Sender<T::Item>>
-// where
-//     T: Stream,
-//     T::Item: Display,
-//     T::Item: Debug
-// {
-
-//     type Item = ();
-//     type Error = ();
-
-//     fn poll(&mut self) -> Poll<(), Self::Error> {
-        
-//         loop {
-
-//             let message = self.0.poll().map_err(|_| ());
-            
-//             if let Some(message) = try_ready!(message) {
-
-//                 let mut send = self.1.to_owned()
-//                     .send(message)
-//                     .map_err(|_| ());
-
-//                 try_ready!(send.poll());
-                
-//             }
-//         }
-
-//     }
-
-// }
-
-
-// #[allow(unused)]
 // struct CommonOptions<'a> {
 //     add_field: Option<HashMap<&'a str, &'a str>>,
 //     codec: Option<&'a str>,

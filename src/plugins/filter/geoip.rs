@@ -1,26 +1,18 @@
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-filters-geoip.html
 
-use futures::{Future, Poll, Async};
 use serde_json::value::Value;
 use std::path::Path;
 
 impl<'a> GeoipFilter<'a> {
-    pub fn process(&self, message: Value) -> GeoipFilterOutput {
-        GeoipFilterOutput(message)
+    pub fn process(&self, message: Value) -> Value {
+
+        if let Some(m) = message.get("date") {
+            message
+        } else {
+            serde_json::json!({"no_date": "THERE IS NO DATE"})
+        }
+        
     }
-}
-
-pub struct GeoipFilterOutput(Value);
-
-impl Future for GeoipFilterOutput {
-
-    type Item = Value;
-    type Error = ();
-
-    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
-        Ok(Async::Ready(self.0.to_owned()))
-    }
-    
 }
 
 #[derive(Debug)]

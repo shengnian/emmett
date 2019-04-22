@@ -17,23 +17,30 @@ impl<'a> Stream for HttpPollerInput<'a> {
         let client = ClientBuilder::new()
             .redirect(RedirectPolicy::default())
             .build()
-            .unwrap();
+            .expect("Couldn't build Reqwest client.");
         
         sleep(Duration::from_millis(self.schedule));
 
-        let mut uri_stream = iter_ok(self.urls.to_owned())
+        let mut response_stream = iter_ok(self.urls.to_owned())
             .and_then(|uri| {
 
                 let res = client.get(uri)
-                    .send();
-
-                res.expect("HttpPollerInput couldn't unwrap response.")
+                    .send()
+                    .unwrap()
                     .json()
-                    .map_err(|_| ())
+                    .unwrap();
+
+                Ok(res)
+                    
+                // if let Ok(mut res) = res {
+                //     res.json().map_err(|_| ())
+                // } else {
+                //     Err(())
+                // }
 
             });
 
-        let res = try_ready!(uri_stream.poll());        
+        let res = try_ready!(response_stream.poll());        
 
         Ok(Async::Ready(res))
             

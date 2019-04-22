@@ -2,10 +2,6 @@ pub mod input;
 pub mod filter;
 pub mod output;
 
-// pub enum Input<'a, M> {
-//     HttpPoller(input::HttpPollerInput<'a>, Sender<M>),
-//     S3(input::S3Input<'a>, Sender<M>)
-// }
 
 // #[derive(Debug)]
 // pub struct Filter<T: Stream>(pub Value, pub T);
