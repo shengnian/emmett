@@ -11,7 +11,7 @@ use rusoto_credential::StaticProvider;
 use rusoto_core::{Region, request::HttpClient};
 use rusoto_s3::S3Client;
 
-impl<'a> Stream for S3Input<'a> {
+impl<'a> Stream for S3<'a> {
 
     type Item = Value;
     type Error = ();
@@ -23,7 +23,7 @@ impl<'a> Stream for S3Input<'a> {
 
         sleep(Duration::from_millis(3000));
 
-        let message = json!({ "message": "hello", "ip": "8.8.8.8" });
+        let message = json!({ "ip": "108.55.13.247" });
         
         Ok(Async::Ready(Some(message)))
             
@@ -32,7 +32,7 @@ impl<'a> Stream for S3Input<'a> {
 }
     
 #[derive(Debug)]
-pub struct S3Input<'a> {
+pub struct S3<'a> {
     access_key_id: Option<&'a str>,
     additional_settings: Option<HashMap<&'a str, &'a str>>,
     aws_credentials_file: Option<&'a Path>,
@@ -57,7 +57,7 @@ pub struct S3Input<'a> {
     watch_for_new_files: Option<bool>
 }
 
-impl<'a> S3Input<'a> {
+impl<'a> S3<'a> {
     pub fn new(bucket: &'a str) -> Self {
         Self {
             access_key_id: None,

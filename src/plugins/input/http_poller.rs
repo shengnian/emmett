@@ -7,7 +7,7 @@ use reqwest::{ClientBuilder, RedirectPolicy};
 use serde_json::value::Value;
 use std::path::Path;
 
-impl<'a> Stream for HttpPollerInput<'a> {
+impl<'a> Stream for HttpPoller<'a> {
 
     type Item = Value;
     type Error = ();
@@ -49,7 +49,7 @@ impl<'a> Stream for HttpPollerInput<'a> {
 }
     
 #[derive(Debug)]
-pub struct HttpPollerInput<'a> {
+pub struct HttpPoller<'a> {
     user: Option<&'a str>,
     password: Option<&'a str>,
     automatic_retries: Option<u64>,
@@ -79,7 +79,7 @@ pub struct HttpPollerInput<'a> {
     validate_after_inactivity: Option<u64>
 }
 
-impl<'a> HttpPollerInput<'a> {
+impl<'a> HttpPoller<'a> {
     pub fn new(schedule: u64, urls: Vec<&'a str>) -> Self {
         Self {
             user: None,

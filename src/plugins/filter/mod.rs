@@ -21,3 +21,15 @@ impl Filter {
         }
     }
 }
+
+// trait Message {
+//     fn tag(&mut self, tag: &str) -> &Self {
+//         self
+//     }
+// }
+
+// impl Message for Value {
+//     fn tag(&mut self, tag: &str) -> &Self {
+//         self
+//     }
+// }

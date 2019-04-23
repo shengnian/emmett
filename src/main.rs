@@ -1,4 +1,5 @@
-use log::{trace, debug, error};
+use log::debug;
+use env_logger::{Builder, Env};
 use structopt::{self, StructOpt};
 use pest_derive::Parser;
 use futures::{stream::Stream, future::lazy, sync::mpsc, Future, sink::Sink};
@@ -11,7 +12,7 @@ use plugins::{input, filter, input::Input, filter::Filter};
 pub struct ConfigParser;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "Emmett", about = "An ETL tool.", author = "Andrew Banchich")]
+#[structopt(name = "(=^•ω•^=) emmett")]
 struct Opt {
     #[structopt(short = "d", long = "debug")]
     debug: bool
@@ -19,44 +20,32 @@ struct Opt {
 
 fn main() {
 
-    let logo = r#"
-(=^•ω•^=)
-"#;
-
-    let _alt_logo = r#"
-    ______                         __  __ 
-   / ____/___ ___  ____ ___  ___  / /_/ /_
-  / __/ / __ `__ \/ __ `__ \/ _ \/ __/ __/
- / /___/ / / / / / / / / / /  __/ /_/ /_  
-/_____/_/ /_/ /_/_/ /_/ /_/\___/\__/\__/  v0.1.0
-
-"#;
-
-    println!("{}", logo);
-
-    env_logger::init();
     let opt = Opt::from_args();
+
+    if opt.debug {
+        Builder::from_env(Env::default().default_filter_or("debug")).init();
+    }
 
     let (input_sender, filter_receiver) = mpsc::channel(1_024);
 
     // create some input instances
-    let http_poller = input::HttpPollerInput::new(
-        5000,
-        vec!["http://date.jsontest.com/"]
-    );
-    let s3_poller = input::S3Input::new("test");
+    // let http_poller = input::HttpPollert::new(
+        // 5000,
+        // vec!["http://date.jsontest.com/"]
+    // );
+    let generator = Input::Generator(input::Generator::new(), input_sender.clone());
 
     // add inputs to enum variant wrappers
-    let poller = Input::HttpPoller(http_poller, input_sender.clone());
-    let s3_plugin = Input::S3(s3_poller, input_sender.clone());
+    // let poller = Input::HttpPoller(http_poller, input_sender.clone());
+    // let s3_plugin = Input::S3(s3_poller, input_sender.clone());
 
     // create some filters
     let geoip = Filter::Geoip(filter::GeoipFilter::new("ip"));
-    let date = Filter::Date(filter::DateFilter::new());
+    // let date = Filter::Date(filter::DateFilter::new());
 
     // config blocks
-    let inputs = vec![poller, s3_plugin];
-    let filters = vec![geoip, date];
+    let inputs: Vec<Input> = vec![generator];
+    let filters: Vec<Filter> = vec![geoip];
     
     tokio::run(lazy(move || {
 
@@ -65,8 +54,6 @@ fn main() {
         let (filter_sender, output_receiver) = mpsc::channel(1_024);
         
         let filter = filter_receiver.for_each(move |message| {
-
-            dbg!(&message);
 
             let message = filters.iter()
                 .fold(message, |acc, x| x.process(acc));
@@ -83,7 +70,8 @@ fn main() {
         tokio::spawn(filter);
 
         let output = output_receiver.for_each(|message| {
-            dbg!(message);
+            // dbg!(message);
+            debug!("{}", message);
             Ok(())
         });
 
@@ -94,23 +82,6 @@ fn main() {
     }));
     
 }
-
-// #[derive(Debug)]
-// pub struct Pipeline {
-//     pub input: Vec<Box<dyn plugins::Plugin>>,
-//     pub filter: Vec<Box<dyn plugins::Plugin>>,
-//     pub output: Vec<Box<dyn plugins::Plugin>>
-// }
-
-// impl Default for Pipeline {
-//     fn default() -> Self {
-//         Self {
-//             input: Vec::new(),
-//             filter: Vec::new(),
-//             output: Vec::new()
-//         }
-//     }
-// }
 
 // impl Pipeline {
     

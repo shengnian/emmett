@@ -2,18 +2,18 @@
 
 use serde_json::{json, value::Value};
 use std::path::Path;
-use reqwest::get;
+use reqwest::{ Client, RedirectPolicy};
 
 impl<'a> GeoipFilter<'a> {
     pub fn process(&self, message: Value) -> Value {
-
+        
         if let Some(m) = message.get(self.source) {
             let value = ip_api(m.as_str().unwrap());
-            json!({ "geoip": value })
+            json!({ self.target.unwrap(): value })
         } else {
-            json!({"no_date": "THERE IS NO DATE"})
+            message
         }
-        
+
     }
 }
 
@@ -43,8 +43,15 @@ impl<'a> GeoipFilter<'a> {
 }
 
 fn ip_api(ip: &str) -> Value {
+    
+    let client = Client::builder()
+        .redirect(RedirectPolicy::limited(10))
+        .build()
+        .unwrap();
+
     let uri = format!("http://ip-api.com/json/{}", ip);
-    get(&uri)
+    client.get(&uri)
+        .send()
         .unwrap()
         .json()
         .unwrap()

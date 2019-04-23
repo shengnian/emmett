@@ -1,9 +1,11 @@
-pub mod stdin;
+mod stdin;
 pub use stdin::*;
-pub mod http_poller;
+mod http_poller;
 pub use http_poller::*;
-pub mod s3;
+mod s3;
 pub use s3::*;
+mod generator;
+pub use generator::*;
 
 use futures::{Future, Poll, Stream, try_ready, Sink};
 use futures::sync::mpsc::{Sender};
@@ -11,8 +13,9 @@ use serde_json::Value;
 
 #[derive(Debug)]
 pub enum Input {
-    HttpPoller(HttpPollerInput<'static>, Sender<Value>),
-    S3(S3Input<'static>, Sender<Value>)
+    Generator(Generator<'static>, Sender<Value>),
+    HttpPoller(HttpPoller<'static>, Sender<Value>),
+    S3(S3<'static>, Sender<Value>)
 }
 
 impl Future for Input {
@@ -26,14 +29,16 @@ impl Future for Input {
 
             let poll = match self {
                 Input::HttpPoller(p,_) => p.poll(),
-                Input::S3(p,_) => p.poll()
+                Input::S3(p,_) => p.poll(),
+                Input::Generator(p,_) => p.poll()
             };
 
             if let Some(message) = try_ready!(poll) {
 
                 let send = match self {
                     Input::HttpPoller(_,s) => s,
-                    Input::S3(_,s) => s
+                    Input::S3(_,s) => s,
+                    Input::Generator(_,s) => s
                 };
 
                 let send = send.to_owned()
