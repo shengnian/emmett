@@ -10,6 +10,7 @@ pub use generator::*;
 use futures::{Future, Poll, Stream, try_ready, Sink};
 use futures::sync::mpsc::{Sender};
 use serde_json::Value;
+use std::collections::HashMap;
 
 #[derive(Debug)]
 pub enum Input {
@@ -41,6 +42,7 @@ impl Future for Input {
                     Input::Generator(_,s) => s
                 };
 
+                
                 let send = send.to_owned()
                     .send(message)
                     .map_err(|_| ())
@@ -55,11 +57,25 @@ impl Future for Input {
 
 }
 
-// struct CommonOptions<'a> {
-//     add_field: Option<HashMap<&'a str, &'a str>>,
-//     codec: Option<&'a str>,
-//     enable_metric: Option<bool>,
-//     id: Option<&'a str>,
-//     tags: Option<Vec<&'a str>>,
-//     r#type: Option<&'a str>
-// }
+#[derive(Debug)]
+pub struct CommonOptions<'a> {
+    add_field: Option<HashMap<&'a str, &'a str>>,
+    codec: Option<&'a str>,
+    enable_metric: Option<bool>,
+    id: Option<&'a str>,
+    tags: Option<Vec<&'a str>>,
+    r#type: Option<&'a str>
+}
+
+impl<'a> Default for CommonOptions<'a> {
+    fn default() -> Self {
+        Self {
+            add_field: None,
+            codec: Some("plain"),
+            enable_metric: Some(true),
+            id: None,
+            tags: None,
+            r#type: None    
+        }
+    }
+}

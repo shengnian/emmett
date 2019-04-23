@@ -11,13 +11,9 @@ impl<'a> Stream for Generator<'a> {
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-
         sleep(Duration::from_millis(3000));
-
         let message = json!({ "ip": "8.8.8.8" });
-
         Ok(Async::Ready(Some(message)))
-            
     }
     
 }
@@ -27,7 +23,8 @@ pub struct Generator<'a> {
     count: Option<u64>,
     lines: Option<Vec<&'a str>>,
     message: Option<&'a str>,
-    threads: Option<u32>
+    threads: Option<u32>,
+    _common: CommonOptions<'a>
 }
 
 impl<'a> Generator<'a> {
@@ -38,13 +35,16 @@ impl<'a> Generator<'a> {
     }        
 }
 
+use crate::input::CommonOptions;
+
 impl<'a> Default for Generator<'a> {
     fn default() -> Self {
         Self {
             count: Some(0),
             lines: None,
             message: Some("Hello world!"),
-            threads: Some(1)
+            threads: Some(1),
+            _common: CommonOptions::default()
         }
     }        
 }

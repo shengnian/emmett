@@ -7,9 +7,18 @@ use reqwest::{ Client, RedirectPolicy};
 impl<'a> GeoipFilter<'a> {
     pub fn process(&self, message: Value) -> Value {
         
-        if let Some(m) = message.get(self.source) {
-            let value = ip_api(m.as_str().unwrap());
+        if let Some(source) = message.get(self.source) {
+
+            let source = source.as_str()
+                .expect("Couldn't parse Geoip source as string.");
+
+            let value = match ip_api(source) {
+                Ok(v) => v,
+                Err(e) => panic!("{}", e)
+            };
+
             json!({ self.target.unwrap(): value })
+
         } else {
             message
         }
@@ -42,17 +51,18 @@ impl<'a> GeoipFilter<'a> {
     }        
 }
 
-fn ip_api(ip: &str) -> Value {
+fn ip_api(ip: &str) -> Result<Value, reqwest::Error> {
     
     let client = Client::builder()
         .redirect(RedirectPolicy::limited(10))
         .build()
-        .unwrap();
+        .expect("Couldn't build Reqwest client.");
 
     let uri = format!("http://ip-api.com/json/{}", ip);
-    client.get(&uri)
-        .send()
-        .unwrap()
-        .json()
-        .unwrap()
+
+    let res = client.get(&uri)
+        .send();
+
+    res?.json()
+        
 }

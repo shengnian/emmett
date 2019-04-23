@@ -5,7 +5,7 @@ use pest_derive::Parser;
 use futures::{stream::Stream, future::lazy, sync::mpsc, Future, sink::Sink};
 
 pub mod plugins;
-use plugins::{input, filter, input::Input, filter::Filter};
+use plugins::{input, filter, output, input::Input, filter::Filter, output::Output};
 
 #[derive(Parser)]
 #[grammar = "logstash.pest"]
@@ -29,23 +29,18 @@ fn main() {
     let (input_sender, filter_receiver) = mpsc::channel(1_024);
 
     // create some input instances
-    // let http_poller = input::HttpPollert::new(
-        // 5000,
-        // vec!["http://date.jsontest.com/"]
-    // );
     let generator = Input::Generator(input::Generator::new(), input_sender.clone());
-
-    // add inputs to enum variant wrappers
-    // let poller = Input::HttpPoller(http_poller, input_sender.clone());
-    // let s3_plugin = Input::S3(s3_poller, input_sender.clone());
 
     // create some filters
     let geoip = Filter::Geoip(filter::GeoipFilter::new("ip"));
-    // let date = Filter::Date(filter::DateFilter::new());
+
+    // create some outputs
+    let stdout = Output::Stdout(output::Stdout::new());
 
     // config blocks
     let inputs: Vec<Input> = vec![generator];
     let filters: Vec<Filter> = vec![geoip];
+    // let outputs: Vec<Output> = vec![stdout];
     
     tokio::run(lazy(move || {
 
@@ -70,9 +65,14 @@ fn main() {
         tokio::spawn(filter);
 
         let output = output_receiver.for_each(|message| {
-            // dbg!(message);
+            
+            let stdout = Output::Stdout(output::Stdout::new());
+            stdout.process(&message).unwrap();
+            
             debug!("{}", message);
+
             Ok(())
+                
         });
 
         tokio::spawn(output);
