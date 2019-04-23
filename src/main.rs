@@ -29,7 +29,10 @@ fn main() {
     let (input_sender, filter_receiver) = mpsc::channel(1_024);
 
     // create some input instances
-    let generator = Input::Generator(input::Generator::new(), input_sender.clone());
+    // let generator = Input::Generator(input::Generator::new(), input_sender.clone());
+    // let generator_2 = Input::Generator(input::Generator::new(), input_sender.clone());
+
+    let exec = Input::Exec(input::Exec::new("ls"), input_sender.clone());
 
     // create some filters
     let geoip = Filter::Geoip(filter::GeoipFilter::new("ip"));
@@ -38,7 +41,7 @@ fn main() {
     let stdout = Output::Stdout(output::Stdout::new());
 
     // config blocks
-    let inputs: Vec<Input> = vec![generator];
+    let inputs: Vec<Input> = vec![exec];
     let filters: Vec<Filter> = vec![geoip];
     // let outputs: Vec<Output> = vec![stdout];
     
@@ -47,7 +50,8 @@ fn main() {
         for input in inputs { tokio::spawn(input); }
 
         let (filter_sender, output_receiver) = mpsc::channel(1_024);
-        
+
+        // send every message through the filter pipeline
         let filter = filter_receiver.for_each(move |message| {
 
             let message = filters.iter()
@@ -64,6 +68,7 @@ fn main() {
 
         tokio::spawn(filter);
 
+        // send every message to every output
         let output = output_receiver.for_each(|message| {
             
             let stdout = Output::Stdout(output::Stdout::new());

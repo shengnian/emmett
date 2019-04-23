@@ -6,6 +6,8 @@ mod s3;
 pub use s3::*;
 mod generator;
 pub use generator::*;
+mod exec;
+pub use exec::*;
 
 use futures::{Future, Poll, Stream, try_ready, Sink};
 use futures::sync::mpsc::{Sender};
@@ -14,6 +16,7 @@ use std::collections::HashMap;
 
 #[derive(Debug)]
 pub enum Input {
+    Exec(exec::Exec<'static>, Sender<Value>),
     Generator(Generator<'static>, Sender<Value>),
     HttpPoller(HttpPoller<'static>, Sender<Value>),
     S3(S3<'static>, Sender<Value>)
@@ -29,6 +32,7 @@ impl Future for Input {
         loop {
 
             let poll = match self {
+                Input::Exec(p,_) => p.poll(),
                 Input::HttpPoller(p,_) => p.poll(),
                 Input::S3(p,_) => p.poll(),
                 Input::Generator(p,_) => p.poll()
@@ -37,12 +41,12 @@ impl Future for Input {
             if let Some(message) = try_ready!(poll) {
 
                 let send = match self {
+                    Input::Exec(_,s) => s,
                     Input::HttpPoller(_,s) => s,
                     Input::S3(_,s) => s,
                     Input::Generator(_,s) => s
                 };
 
-                
                 let send = send.to_owned()
                     .send(message)
                     .map_err(|_| ())
