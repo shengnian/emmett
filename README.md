@@ -5,10 +5,18 @@ Emmett is an ETL tool that supports drop-in Logstash functionality through a con
 # Usage
 
 ```
-    ______                         __  __
-   / ____/___ ___  ____ ___  ___  / /_/ /_
-  / __/ / __ `__ \/ __ `__ \/ _ \/ __/ __/
- / /___/ / / / / / / / / / /  __/ /_/ /_
-/_____/_/ /_/ /_/_/ /_/ /_/\___/\__/\__/  v0.1.0
+
+(=^•ω•^=)
+
+Emmett 0.1.0
+Andrew Banchich
+
+USAGE:
+    emmett [FLAGS]
+
+FLAGS:
+    -d, --debug
+    -h, --help       Prints help information
+    -V, --version    Prints version information
 
 ```
