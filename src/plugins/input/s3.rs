@@ -81,7 +81,7 @@ impl<'a> S3<'a> {
             session_token: None,
             sincedb_path: None,
             temporary_directory: Some(Path::new("/tmp/logstash")),
-            watch_for_new_files: Some(true)
+            watch_for_new_files: Some(true),
         }        
     }
 }

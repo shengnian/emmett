@@ -32,6 +32,11 @@ fn main() {
     // let generator = Input::Generator(input::Generator::new(), input_sender.clone());
     // let generator_2 = Input::Generator(input::Generator::new(), input_sender.clone());
 
+    let poller = Input::HttpPoller(
+        input::HttpPoller::new(5000, vec!["https://jsonplaceholder.typicode.com/todos/1"]),
+        input_sender.clone()
+    );
+    
     let exec = Input::Exec(input::Exec::new("ls"), input_sender.clone());
 
     // create some filters
@@ -41,7 +46,7 @@ fn main() {
     let stdout = Output::Stdout(output::Stdout::new());
 
     // config blocks
-    let inputs: Vec<Input> = vec![exec];
+    let inputs: Vec<Input> = vec![poller];
     let filters: Vec<Filter> = vec![geoip];
     // let outputs: Vec<Output> = vec![stdout];
     

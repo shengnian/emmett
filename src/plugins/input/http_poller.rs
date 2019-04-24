@@ -3,7 +3,7 @@
 use std::time::Duration;
 use futures::{stream::iter_ok, Stream, Poll, Async, try_ready};
 use std::thread::sleep;
-use reqwest::{ClientBuilder, RedirectPolicy};
+use reqwest::{ClientBuilder, RequestBuilder, RedirectPolicy};
 use serde_json::value::Value;
 use std::path::Path;
 
@@ -14,30 +14,47 @@ impl<'a> Stream for HttpPoller<'a> {
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
 
-        let client = ClientBuilder::new()
-            .redirect(RedirectPolicy::default())
-            .build()
-            .expect("Couldn't build Reqwest client.");
+        let mut client = ClientBuilder::new();
+
+        // self.follow_redirects
+        if self.follow_redirects == Some(true) {
+            client = client.redirect(RedirectPolicy::default());
+        }
+
+        // self.request_timeout
+        if let Some(timeout) = self.request_timeout {
+            client = client.timeout(Duration::from_secs(timeout));
+        }
         
+        // self.cookies
+        if self.cookies == Some(true) {
+            client = client.cookie_store(true);
+        }
+
+        let client = client.build()
+            .expect("Couldn't build Reqwest client.");
+
+        // self.schedule
         sleep(Duration::from_millis(self.schedule));
 
+        // self.urls
         let mut response_stream = iter_ok(self.urls.to_owned())
             .and_then(|uri| {
 
-                let res = client.get(uri)
-                    .send()
+                let url = url::Url::parse(uri).unwrap();
+                let mut req = client.request(http::Method::GET, url);
+
+                if let Some(user) = self.user {
+                    req = req.basic_auth::<&str, &str>(user, self.password);
+                }
+                
+                let res = req.send()
                     .unwrap()
                     .json()
                     .unwrap();
 
                 Ok(res)
                     
-                // if let Ok(mut res) = res {
-                //     res.json().map_err(|_| ())
-                // } else {
-                //     Err(())
-                // }
-
             });
 
         let res = try_ready!(response_stream.poll());        
@@ -76,7 +93,7 @@ pub struct HttpPoller<'a> {
     truststore_password: Option<&'a str>,
     truststore_type: Option<&'a str>,
     urls: Vec<&'a str>,
-    validate_after_inactivity: Option<u64>
+    validate_after_inactivity: Option<u64>,
 }
 
 impl<'a> HttpPoller<'a> {

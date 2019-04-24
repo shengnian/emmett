@@ -23,8 +23,7 @@ pub struct Generator<'a> {
     count: Option<u64>,
     lines: Option<Vec<&'a str>>,
     message: Option<&'a str>,
-    threads: Option<u32>,
-    _common: CommonOptions<'a>
+    threads: Option<u32>
 }
 
 impl<'a> Generator<'a> {
@@ -35,16 +34,13 @@ impl<'a> Generator<'a> {
     }        
 }
 
-use crate::input::CommonOptions;
-
 impl<'a> Default for Generator<'a> {
     fn default() -> Self {
         Self {
             count: Some(0),
             lines: None,
             message: Some("Hello world!"),
-            threads: Some(1),
-            _common: CommonOptions::default()
+            threads: Some(1)
         }
     }        
 }
