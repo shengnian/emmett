@@ -6,7 +6,7 @@ mod geoip;
 pub use geoip::*;
 
 use futures::{Poll, Future, Stream, try_ready};
-use futures::sync::mpsc::{channel, Receiver, Sender};
+use futures::sync::mpsc::{channel, Sender, Receiver};
 use serde_json::Value;
 
 pub struct FilterBlock(pub Vec<Filter>, pub Receiver<Value>, pub Sender<Value>);

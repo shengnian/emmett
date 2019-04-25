@@ -5,12 +5,10 @@ use pest_derive::Parser;
 use futures::{future::lazy, sync::mpsc};
 
 pub mod plugins;
-use plugins::{input,
-              filter,
-              output,
-              input::{Input, InputBlock},
-              filter::{Filter, FilterBlock},
-              output::{Output, OutputBlock}};
+use plugins::{
+    input::{self, Input, InputBlock},
+    filter::{self, Filter, FilterBlock},
+    output::{self, Output, OutputBlock}};
 
 #[derive(Parser)]
 #[grammar = "logstash.pest"]

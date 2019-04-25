@@ -6,6 +6,7 @@ pub use elasticsearch::*;
 use futures::{Future, Poll, Stream, try_ready, sync::mpsc::Receiver};
 use serde_json::Value;
 use std::collections::HashMap;
+use crossbeam_channel::unbounded;
 
 pub struct OutputBlock(pub Vec<Output>, pub Receiver<Value>);
 
@@ -15,20 +16,27 @@ pub enum Output {
 }
 
 impl OutputBlock {
-    pub fn run(&mut self) {
+    pub fn run(mut self) {
 
-        let (outputs, receiver) = (&mut self.0, self.1);
+        let (s, r) = unbounded();
         
-        outputs.iter_mut()
-            .for_each(move |mut output| {
-                match &mut output {
-                    Output::Stdout(ref mut p) => p._receiver = Some(&receiver)
+        &mut self.0.iter_mut()
+            .for_each(|output| {
+                match output {
+                    Output::Stdout(ref mut p) => p._receiver = Some(r.clone())
                 };
             });
 
         for output in self.0 {
             tokio::spawn(output);
         }
+
+        let broadcast = self.1.for_each(move |message| {
+            s.send(message);
+            Ok(())
+        });
+
+        tokio::spawn(broadcast);
         
     }
 }
@@ -41,14 +49,12 @@ impl Future for Output {
     fn poll(&mut self) -> Poll<(), Self::Error> {
         
         loop {
-            
+
             let poll = match self {
                 Output::Stdout(p) => p.poll(),
             };
-
-            if let Some(message) = try_ready!(poll) {
-                println!("{:#}", message);
-            };            
+            
+            poll.expect("Something went wrong polling an output plugin.");
 
         }
 
