@@ -1,7 +1,7 @@
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-generator.html
 
 use std::time::Duration;
-use futures::{Stream, Poll, Async};
+use futures::{Stream, Poll, Async, sync::mpsc::Sender};
 use std::thread::sleep;
 use serde_json::{json, value::Value};
 
@@ -23,7 +23,8 @@ pub struct Generator<'a> {
     count: Option<u64>,
     lines: Option<Vec<&'a str>>,
     message: Option<&'a str>,
-    threads: Option<u32>
+    threads: Option<u32>,
+    pub _sender: Option<Sender<Value>>
 }
 
 impl<'a> Generator<'a> {
@@ -40,7 +41,8 @@ impl<'a> Default for Generator<'a> {
             count: Some(0),
             lines: None,
             message: Some("Hello world!"),
-            threads: Some(1)
+            threads: Some(1),
+            _sender: None
         }
     }        
 }

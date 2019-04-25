@@ -9,17 +9,40 @@ pub use generator::*;
 mod exec;
 pub use exec::*;
 
-use futures::{Future, Poll, Stream, try_ready, Sink};
+use futures::{Future, Poll, Stream, try_ready};
 use futures::sync::mpsc::{Sender};
 use serde_json::Value;
 use std::collections::HashMap;
 
+pub struct InputBlock(pub Vec<Input>, pub Sender<Value>);
+
 #[derive(Debug)]
 pub enum Input {
-    Exec(exec::Exec<'static>, Sender<Value>),
-    Generator(Generator<'static>, Sender<Value>),
-    HttpPoller(HttpPoller<'static>, Sender<Value>),
-    S3(S3<'static>, Sender<Value>)
+    Exec(Exec<'static>),
+    Generator(Generator<'static>),
+    HttpPoller(HttpPoller<'static>),
+    S3(S3<'static>)
+}
+
+impl InputBlock {
+    pub fn run(self) {
+
+        let (inputs, sender) = (self.0, self.1);
+        
+        inputs.into_iter().for_each(|mut input| {
+
+            match &mut input {
+                Input::Exec(ref mut p) => p._sender = Some(sender.clone()),
+                Input::HttpPoller(ref mut p) => p._sender = Some(sender.clone()),
+                Input::S3(ref mut p) => p._sender = Some(sender.clone()),
+                Input::Generator(ref mut p) => p._sender = Some(sender.clone())
+            }
+
+            tokio::spawn(input);
+            
+        });
+        
+    }
 }
 
 impl Future for Input {
@@ -32,29 +55,15 @@ impl Future for Input {
         loop {
 
             let poll = match self {
-                Input::Exec(p,_) => p.poll(),
-                Input::HttpPoller(p,_) => p.poll(),
-                Input::S3(p,_) => p.poll(),
-                Input::Generator(p,_) => p.poll()
+                Input::Exec(p) => p.poll(),
+                Input::HttpPoller(p) => p.poll(),
+                Input::S3(p) => p.poll(),
+                Input::Generator(p) => p.poll()
             };
 
-            if let Some(message) = try_ready!(poll) {
+            let message = try_ready!(poll);
+            dbg!(message);
 
-                let send = match self {
-                    Input::Exec(_,s) => s,
-                    Input::HttpPoller(_,s) => s,
-                    Input::S3(_,s) => s,
-                    Input::Generator(_,s) => s
-                };
-
-                let send = send.to_owned()
-                    .send(message)
-                    .map_err(|_| ())
-                    .poll();
-                
-                try_ready!(send);
-                
-            }
         }
 
     }

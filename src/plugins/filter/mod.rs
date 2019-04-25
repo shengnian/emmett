@@ -5,31 +5,76 @@ pub use date::*;
 mod geoip;
 pub use geoip::*;
 
-#[derive(Debug)]
-pub enum Filter {
-    Geoip(geoip::GeoipFilter<'static>),
-    Date(date::DateFilter)
-}
-
+use futures::{Poll, Future, Stream, try_ready};
+use futures::sync::mpsc::{channel, Receiver, Sender};
 use serde_json::Value;
 
-impl Filter {
-    pub fn process(&self, message: Value) -> Value {
-        match self {
-            Filter::Geoip(p) => p.process(message),
-            Filter::Date(p) => p.process(message)
+pub struct FilterBlock(pub Vec<Filter>, pub Receiver<Value>, pub Sender<Value>);
+
+#[derive(Debug)]
+pub enum Filter {
+    Geoip(geoip::GeoipFilter<'static>)
+}
+
+impl FilterBlock {
+    pub fn run(self) {
+
+        let (filters, receiver, sender) = (self.0, self.1, self.2);
+        
+        let mut filters = filters.into_iter()
+            .fold(Vec::new(), |mut acc, mut filter| {
+
+                let (tx, rx) = channel(1_024);
+
+                match &mut filter {
+                    Filter::Geoip(ref mut p) => {
+                        p._receiver = Some(rx);
+                        p._sender = Some(tx);
+                    },
+                };
+                
+                acc.push(filter);
+                acc
+                    
+            });
+
+        if let Some(filter) = filters.iter_mut().nth(0) {
+            match filter {
+                Filter::Geoip(ref mut p) => p._receiver = Some(receiver)
+            };
         }
+
+        if let Some(filter) = filters.iter_mut().last() {
+            match filter {
+                Filter::Geoip(ref mut p) => p._sender = Some(sender)
+            };
+        }
+        
+        for filter in filters {
+            tokio::spawn(filter);
+        }
+        
     }
 }
 
-// trait Message {
-//     fn tag(&mut self, tag: &str) -> &Self {
-//         self
-//     }
-// }
+impl Future for Filter {
 
-// impl Message for Value {
-//     fn tag(&mut self, tag: &str) -> &Self {
-//         self
-//     }
-// }
+    type Item = ();
+    type Error = ();
+    
+    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
+
+        loop {
+
+            let poll = match self {
+                Filter::Geoip(p) => p.poll(),
+            };
+
+            let message = try_ready!(poll);
+            dbg!(message);
+
+        }
+
+    }
+    
+}

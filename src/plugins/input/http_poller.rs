@@ -1,9 +1,9 @@
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-http_poller.html
 
 use std::time::Duration;
-use futures::{stream::iter_ok, Stream, Poll, Async, try_ready};
+use futures::{stream::iter_ok, Stream, Poll, Async, try_ready, sync::mpsc::Sender};
 use std::thread::sleep;
-use reqwest::{ClientBuilder, RequestBuilder, RedirectPolicy};
+use reqwest::{ClientBuilder, RedirectPolicy};
 use serde_json::value::Value;
 use std::path::Path;
 
@@ -44,6 +44,7 @@ impl<'a> Stream for HttpPoller<'a> {
                 let url = url::Url::parse(uri).unwrap();
                 let mut req = client.request(http::Method::GET, url);
 
+                // self.user and self.password
                 if let Some(user) = self.user {
                     req = req.basic_auth::<&str, &str>(user, self.password);
                 }
@@ -57,9 +58,9 @@ impl<'a> Stream for HttpPoller<'a> {
                     
             });
 
-        let res = try_ready!(response_stream.poll());        
+        let message = try_ready!(response_stream.poll());        
 
-        Ok(Async::Ready(res))
+        Ok(Async::Ready(message))
             
     }
     
@@ -94,10 +95,11 @@ pub struct HttpPoller<'a> {
     truststore_type: Option<&'a str>,
     urls: Vec<&'a str>,
     validate_after_inactivity: Option<u64>,
+    pub _sender: Option<Sender<Value>>
 }
 
-impl<'a> HttpPoller<'a> {
-    pub fn new(schedule: u64, urls: Vec<&'a str>) -> Self {
+impl<'a> Default for HttpPoller<'a> {
+    fn default() -> Self {
         Self {
             user: None,
             password: None,
@@ -118,14 +120,25 @@ impl<'a> HttpPoller<'a> {
             proxy: None,
             request_timeout: Some(60),
             retry_non_idempotent: Some(false),
-            schedule,
+            schedule: 5,
             socket_timeout: Some(10),
             target: None,
             truststore: None,
             truststore_password: None,
             truststore_type: Some("JKS"),
-            urls,
+            urls: vec![],
             validate_after_inactivity: Some(200),
+            _sender: None
+        }
+    }        
+}
+
+impl<'a> HttpPoller<'a> {
+    pub fn new(schedule: u64, urls: Vec<&'a str>) -> Self {
+        Self {
+            schedule,
+            urls,
+            ..Default::default()
         }
     }        
 }

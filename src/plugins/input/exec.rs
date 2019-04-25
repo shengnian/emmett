@@ -1,7 +1,7 @@
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-exec.html
 
 use std::time::Duration;
-use futures::{Stream, Poll, Async};
+use futures::{Stream, Poll, Async, sync::mpsc::Sender};
 use std::thread::sleep;
 use serde_json::{json, value::Value};
 use std::process::Command;
@@ -32,7 +32,8 @@ impl<'a> Stream for Exec<'a> {
 pub struct Exec<'a> {
     command: &'a str,
     interval: Option<u64>,
-    schedule: Option<&'a str>
+    schedule: Option<&'a str>,
+    pub _sender: Option<Sender<Value>>
 }
 
 impl<'a> Default for Exec<'a> {
@@ -40,7 +41,8 @@ impl<'a> Default for Exec<'a> {
         Self {
             command: "",
             interval: Some(5),
-            schedule: Some("test")
+            schedule: Some("test"),
+            _sender: None
         }
     }
 }

@@ -2,29 +2,67 @@
 
 use serde_json::{json, value::Value};
 use std::path::Path;
-use reqwest::{ Client, RedirectPolicy};
+use reqwest::{Client, RedirectPolicy};
+use futures::{Poll, Async, Stream, sync::mpsc::{Receiver, Sender}};
 
-impl<'a> GeoipFilter<'a> {
-    pub fn process(&self, message: Value) -> Value {
-        
-        if let Some(source) = message.get(self.source) {
+impl<'a> Stream for GeoipFilter<'a> {
 
-            let source = source.as_str()
-                .expect("Couldn't parse Geoip source as string.");
+    type Item = Value;
+    type Error = ();
 
-            let value = match ip_api(source) {
-                Ok(v) => v,
-                Err(e) => panic!("{}", e)
-            };
+    fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
 
-            json!({ self.target.unwrap(): value })
+        if let Some(ref receiver) = self._receiver {
+            receiver.for_each(|input_message| {
+
+                let source = input_message.get(self.source)
+                    .unwrap()
+                    .as_str()
+                    .expect("Couldn't parse Geoip source as string.");
+
+                let value = match ip_api(source) {
+                    Ok(v) => v,
+                    Err(e) => panic!("{}", e)
+                };
+
+                let _output_message = json!({ self.target.unwrap(): value });
+
+                Ok(())
+                    
+            });
+
+            // tokio::spawn(queue);
+
+            Ok(Async::Ready(Some(json!({"message": "success!"}))))            
 
         } else {
-            message
+            panic!("ljkhsdkjhsdff");
         }
-
     }
+    
 }
+
+// impl<'a> GeoipFilter<'a> {
+//     pub fn process(&self, message: Value) -> Value {
+        
+//         if let Some(source) = message.get(self.source) {
+
+//             let source = source.as_str()
+//                 .expect("Couldn't parse Geoip source as string.");
+
+//             let value = match ip_api(source) {
+//                 Ok(v) => v,
+//                 Err(e) => panic!("{}", e)
+//             };
+
+//             json!({ self.target.unwrap(): value })
+
+//         } else {
+//             message
+//         }
+
+//     }
+// }
 
 #[derive(Debug)]
 pub struct GeoipFilter<'a> {
@@ -34,21 +72,34 @@ pub struct GeoipFilter<'a> {
     fields: Option<Vec<&'a str>>,
     source: &'a str,
     tag_on_failure: Option<Vec<&'a str>>,
-    target: Option<&'a str>
+    target: Option<&'a str>,
+    pub _receiver: Option<Receiver<Value>>,
+    pub _sender: Option<Sender<Value>>
 }
 
 impl<'a> GeoipFilter<'a> {
     pub fn new(source: &'a str) -> Self {
         Self {
+            source,
+            ..Default::default()
+        }
+    }        
+}
+
+impl<'a> Default for GeoipFilter<'a> {
+    fn default() -> Self {
+        Self {
             cache_size: Some(1000),
             database: None,
             default_database_type: Some("City"),
             fields: None,
-            source,
+            source: "",
             tag_on_failure: Some(vec!["_geoip_lookup_failure"]),
-            target: Some("geoip")
+            target: Some("geoip"),
+            _receiver: None,
+            _sender: None
         }
-    }        
+    }
 }
 
 fn ip_api(ip: &str) -> Result<Value, reqwest::Error> {

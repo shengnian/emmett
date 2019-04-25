@@ -1,11 +1,16 @@
-use log::debug;
+// use log::debug;
 use env_logger::{Builder, Env};
 use structopt::{self, StructOpt};
 use pest_derive::Parser;
-use futures::{stream::Stream, future::lazy, sync::mpsc, Future, sink::Sink};
+use futures::{future::lazy, sync::mpsc};
 
 pub mod plugins;
-use plugins::{input, filter, output, input::Input, filter::Filter, output::Output};
+use plugins::{input,
+              filter,
+              output,
+              input::{Input, InputBlock},
+              filter::{Filter, FilterBlock},
+              output::{Output, OutputBlock}};
 
 #[derive(Parser)]
 #[grammar = "logstash.pest"]
@@ -23,69 +28,70 @@ fn main() {
     let opt = Opt::from_args();
 
     if opt.debug {
-        Builder::from_env(Env::default().default_filter_or("debug")).init();
+        let debug = Env::default().default_filter_or("debug");
+        Builder::from_env(debug).init();
     }
 
-    let (input_sender, filter_receiver) = mpsc::channel(1_024);
-
-    // create some input instances
-    // let generator = Input::Generator(input::Generator::new(), input_sender.clone());
-    // let generator_2 = Input::Generator(input::Generator::new(), input_sender.clone());
-
+    // create inputs
     let poller = Input::HttpPoller(
-        input::HttpPoller::new(5000, vec!["https://jsonplaceholder.typicode.com/todos/1"]),
-        input_sender.clone()
+        input::HttpPoller::new(3000, vec!["https://jsonplaceholder.typicode.com/todos/1"])
     );
-    
-    let exec = Input::Exec(input::Exec::new("ls"), input_sender.clone());
+    let generator = Input::Generator(input::Generator::new());
+    let exec = Input::Exec(input::Exec::new("ls"));
 
-    // create some filters
+    // create filters
     let geoip = Filter::Geoip(filter::GeoipFilter::new("ip"));
-
-    // create some outputs
+    
+    // create outputs
     let stdout = Output::Stdout(output::Stdout::new());
 
-    // config blocks
-    let inputs: Vec<Input> = vec![poller];
-    let filters: Vec<Filter> = vec![geoip];
-    // let outputs: Vec<Output> = vec![stdout];
+    // create channels
+    let (input_sender, filter_receiver) = mpsc::channel(1_024);
+    let (filter_sender, output_receiver) = mpsc::channel(1_024);
+
+    // create blocks
+    let inputs = InputBlock(vec![poller, exec, generator], input_sender);
+    let filters = FilterBlock(vec![geoip], filter_receiver, filter_sender);
+    let _outputs = OutputBlock(vec![stdout], output_receiver);
     
     tokio::run(lazy(move || {
 
-        for input in inputs { tokio::spawn(input); }
-
-        let (filter_sender, output_receiver) = mpsc::channel(1_024);
+        inputs.run();
+        filters.run();
 
         // send every message through the filter pipeline
-        let filter = filter_receiver.for_each(move |message| {
+        // let filter = filter_receiver.for_each(move |message| {
 
-            let message = filters.iter()
-                .fold(message, |acc, x| x.process(acc));
+        //     let message = filters.iter()
+        //         .fold(message, |acc, x| x.process(acc));
             
-            filter_sender.clone()
-                .send(message)
-                .poll()
-                .unwrap();
+        //     filter_sender.clone()
+        //         .send(message)
+        //         .poll()
+        //         .unwrap();
             
-            Ok(())
+        //     Ok(())
                 
-        });
+        // });
 
-        tokio::spawn(filter);
+        // tokio::spawn(filter);
 
+        // for output in outputs { tokio::spawn(output); }
+        
         // send every message to every output
-        let output = output_receiver.for_each(|message| {
-            
-            let stdout = Output::Stdout(output::Stdout::new());
-            stdout.process(&message).unwrap();
-            
-            debug!("{}", message);
+        // let output_stream = output_receiver.for_each(|message| {
 
-            Ok(())
+        //     outputs.iter().map(|output| {
+        //         output.process(&message);
+        //     });
+            
+        //     debug!("{}", message);
+            
+        //     Ok(())
                 
-        });
+        // });
 
-        tokio::spawn(output);
+        // tokio::spawn(output_stream);
 
         Ok(())
             

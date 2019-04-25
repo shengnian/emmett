@@ -1,7 +1,7 @@
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-s3.html
 
 use std::time::Duration;
-use futures::{Stream, Poll, Async};
+use futures::{Stream, Poll, Async, sync::mpsc::Sender};
 use std::thread::sleep;
 use serde_json::{json, value::Value};
 use std::collections::HashMap;
@@ -54,7 +54,8 @@ pub struct S3<'a> {
     session_token: Option<&'a str>,
     sincedb_path: Option<&'a Path>,
     temporary_directory: Option<&'a Path>,
-    watch_for_new_files: Option<bool>
+    watch_for_new_files: Option<bool>,
+    pub _sender: Option<Sender<Value>>
 }
 
 impl<'a> S3<'a> {
@@ -82,6 +83,7 @@ impl<'a> S3<'a> {
             sincedb_path: None,
             temporary_directory: Some(Path::new("/tmp/logstash")),
             watch_for_new_files: Some(true),
+            _sender: None
         }        
     }
 }
