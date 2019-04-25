@@ -3,18 +3,37 @@ pub use stdout::*;
 mod elasticsearch;
 pub use elasticsearch::*;
 
-use futures::{Future, Poll, sync::mpsc::Receiver};
+use futures::{Future, Poll, Stream, try_ready, sync::mpsc::Receiver};
 use serde_json::Value;
 use std::collections::HashMap;
 
-pub struct OutputBlock<'a>(pub Vec<Output<'a>>, pub Receiver<Value>);
+pub struct OutputBlock(pub Vec<Output>, pub Receiver<Value>);
 
 #[derive(Debug)]
-pub enum Output<'a> {
-    Stdout(Stdout<'a>),
+pub enum Output {
+    Stdout(Stdout),
 }
 
-impl<'a> Future for Output<'a> {
+impl OutputBlock {
+    pub fn run(&self) {
+
+        let (mut outputs, receiver) = (&self.0, &self.1);
+        
+        outputs.iter_mut()
+            .for_each(|mut output| {
+                match &mut output {
+                    Output::Stdout(ref mut p) => p._receiver = Some(receiver)
+                };
+            });
+
+        for output in outputs.into_iter() {
+            tokio::spawn(output);
+        }
+        
+    }
+}
+
+impl Future for Output {
 
     type Item = ();
     type Error = ();
@@ -22,26 +41,14 @@ impl<'a> Future for Output<'a> {
     fn poll(&mut self) -> Poll<(), Self::Error> {
         
         loop {
+            
+            let poll = match self {
+                Output::Stdout(p) => p.poll(),
+            };
 
-            // let poll = match self {
-            //     Output::Stdout(p,_) => p.poll(),
-            // };
-
-            // if let Some(message) = try_ready!(poll) {
-
-            //     let send = match self {
-            //         Output::Stdout(_,s) => s,
-            //     };
-
-            //     let send = send.to_owned()
-            //         .send(message)
-            //         .map_err(|_| ())
-            //         .poll();
-                
-            //     try_ready!(send);
-
-            // }
-
+            if let Some(message) = try_ready!(poll) {
+                println!("{:#}", message);
+            };            
 
         }
 

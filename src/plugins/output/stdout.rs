@@ -1,18 +1,17 @@
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-outputs-stdout.html
 
-use futures::{Async, Poll, Future};
+use futures::{Async, Poll, Stream};
 use serde_json::{json, value::Value};
+use futures::sync::mpsc::Receiver;
 
-impl<'a> Future for Stdout<'a> {
+impl Stream for Stdout {
 
     type Item = Value;
     type Error = ();
 
-    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
-
+    fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
         let response = json!({ "status": "ok" });
-        Ok(Async::Ready(response))
-        
+        Ok(Async::Ready(Some(response)))
     }
 }
 
@@ -20,19 +19,6 @@ impl<'a> Future for Stdout<'a> {
 //     pub fn process(&self, message: &Value) -> StdoutMessage {
 //         StdoutMessage(&self, message)
 //     }
-// }
-
-// pub struct StdoutMessage<'a>(&'a Stdout<'a>, Value);
-
-// impl<'a> Future for StdoutMessage<'a> {
-
-//     type Item = Value;
-//     type Error = ();
-    
-//     fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
-//         Ok(Async::Ready(self.1.to_owned()))
-//     }
-    
 // }
 
 // impl<'a> Stdout<'a> {
@@ -44,13 +30,14 @@ impl<'a> Future for Stdout<'a> {
 // }
 
 #[derive(Debug)]
-pub struct Stdout<'a> {
-    codec: Option<&'a str>,
+pub struct Stdout {
+    codec: Option<&'static str>,
     enable_metric: Option<bool>,
-    id: Option<&'a str>
+    id: Option<&'static str>,
+    pub _receiver: Option<&'static Receiver<Value>>
 }
 
-impl<'a> Stdout<'a> {
+impl Stdout {
     pub fn new() -> Self {
         Self {
             ..Default::default()
@@ -58,12 +45,13 @@ impl<'a> Stdout<'a> {
     }
 }
 
-impl<'a> Default for Stdout<'a> {
+impl Default for Stdout {
     fn default() -> Self {
         Self {
             codec: None,
             enable_metric: None,
-            id: None
+            id: None,
+            _receiver: None
         }
     }
 }
