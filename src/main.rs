@@ -32,25 +32,25 @@ fn main() {
         Builder::from_env(debug).init();
     }
 
-    // create inputs
+    // inputs
     let poller = Input::HttpPoller(
         input::HttpPoller::new(3000, vec!["https://jsonplaceholder.typicode.com/todos/1"])
     );
     let generator = Input::Generator(input::Generator::new());
     let exec = Input::Exec(input::Exec::new("ls"));
 
-    // create filters
+    // filters
     let geoip = Filter::Geoip(filter::GeoipFilter::new("ip"));
     
-    // create outputs
+    // outputs
     let stdout = Output::Stdout(output::Stdout::new());
 
-    // create channels
+    // communication channels
     let (input_sender, filter_receiver) = mpsc::channel(1_024);
     let (filter_sender, output_receiver) = mpsc::channel(1_024);
 
-    // create blocks
-    let inputs = InputBlock(vec![poller, exec, generator], input_sender);
+    // blocks
+    let inputs = InputBlock(vec![generator], input_sender);
     let filters = FilterBlock(vec![geoip], filter_receiver, filter_sender);
     let _outputs = OutputBlock(vec![stdout], output_receiver);
     

@@ -3,7 +3,7 @@
 use serde_json::{json, value::Value};
 use std::path::Path;
 use reqwest::{Client, RedirectPolicy};
-use futures::{Poll, Async, Stream, sync::mpsc::{Receiver, Sender}};
+use futures::{Poll, Async, try_ready, Stream, sync::mpsc::{Receiver, Sender}};
 
 impl<'a> Stream for GeoipFilter<'a> {
 
@@ -12,10 +12,14 @@ impl<'a> Stream for GeoipFilter<'a> {
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
 
-        if let Some(ref receiver) = self._receiver {
-            receiver.for_each(|input_message| {
+        let source = self.source;
+        let target = self.target.unwrap();
+        
+        if let Some(ref mut receiver) = &mut self._receiver {
 
-                let source = input_message.get(self.source)
+            let mut process = receiver.by_ref().map(|input_message| {
+                
+                let source = input_message.get(source)
                     .unwrap()
                     .as_str()
                     .expect("Couldn't parse Geoip source as string.");
@@ -25,18 +29,18 @@ impl<'a> Stream for GeoipFilter<'a> {
                     Err(e) => panic!("{}", e)
                 };
 
-                let _output_message = json!({ self.target.unwrap(): value });
+                let output_message = json!({ target: value });
 
-                Ok(())
-                    
+                output_message
+                
             });
 
-            // tokio::spawn(queue);
-
-            Ok(Async::Ready(Some(json!({"message": "success!"}))))            
+            let message = try_ready!(process.poll());
+            Ok(Async::Ready(message))
+                
 
         } else {
-            panic!("ljkhsdkjhsdff");
+            panic!("No receiver found for GeoipFilter.");
         }
     }
     

@@ -9,7 +9,7 @@ pub use generator::*;
 mod exec;
 pub use exec::*;
 
-use futures::{Future, Poll, Stream, try_ready};
+use futures::{Future, Poll, Stream, Sink, try_ready};
 use futures::sync::mpsc::{Sender};
 use serde_json::Value;
 use std::collections::HashMap;
@@ -61,8 +61,17 @@ impl Future for Input {
                 Input::Generator(p) => p.poll()
             };
 
-            let message = try_ready!(poll);
-            dbg!(message);
+            if let Some(message) = try_ready!(poll) {
+                if let Some(sender) = match self {
+                    Input::Exec(p) => p._sender.clone(),
+                    Input::HttpPoller(p) => p._sender.clone(),
+                    Input::S3(p) => p._sender.clone(),
+                    Input::Generator(p) => p._sender.clone()
+
+                } {
+                    sender.send(message).poll().unwrap();
+                }
+            }
 
         }
 
