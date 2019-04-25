@@ -50,7 +50,7 @@ fn main() {
     let (filter_sender, output_receiver) = mpsc::channel(1_024);
 
     // blocks
-    let inputs = InputBlock(vec![generator], input_sender);
+    let inputs = InputBlock(vec![exec, generator], input_sender);
     let filters = FilterBlock(vec![geoip], filter_receiver, filter_sender);
     let _outputs = OutputBlock(vec![stdout], output_receiver);
     
@@ -59,33 +59,16 @@ fn main() {
         inputs.run();
         filters.run();
 
-        // send every message through the filter pipeline
-        // let filter = filter_receiver.for_each(move |message| {
-
-        //     let message = filters.iter()
-        //         .fold(message, |acc, x| x.process(acc));
-            
-        //     filter_sender.clone()
-        //         .send(message)
-        //         .poll()
-        //         .unwrap();
-            
-        //     Ok(())
-                
-        // });
-
-        // tokio::spawn(filter);
-
-        // for output in outputs { tokio::spawn(output); }
+        // for output in outputs.0 { tokio::spawn(output); }
         
-        // send every message to every output
+        // // send every message to every output
         // let output_stream = output_receiver.for_each(|message| {
 
-        //     outputs.iter().map(|output| {
+        //     outputs.0.iter().map(|output| {
         //         output.process(&message);
         //     });
             
-        //     debug!("{}", message);
+        //     // debug!("{}", message);
             
         //     Ok(())
                 

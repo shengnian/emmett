@@ -12,7 +12,7 @@ impl<'a> Stream for Generator<'a> {
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
         sleep(Duration::from_millis(3000));
-        let message = json!({ "ip": "8.8.8.8" });
+        let message = json!({ "ip": "108.55.13.247" });
         Ok(Async::Ready(Some(message)))
     }
     

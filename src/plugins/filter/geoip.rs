@@ -19,19 +19,23 @@ impl<'a> Stream for GeoipFilter<'a> {
 
             let mut process = receiver.by_ref().map(|input_message| {
                 
-                let source = input_message.get(source)
-                    .unwrap()
-                    .as_str()
+                if let Some(source) = input_message.get(source) {
+
+                    let source = source.as_str()
                     .expect("Couldn't parse Geoip source as string.");
 
-                let value = match ip_api(source) {
-                    Ok(v) => v,
-                    Err(e) => panic!("{}", e)
-                };
+                    let value = match ip_api(source) {
+                        Ok(v) => v,
+                        Err(e) => panic!("{}", e)
+                    };
 
-                let output_message = json!({ target: value });
+                    let output_message = json!({ target: value });
 
-                output_message
+                    output_message
+
+                } else {
+                    input_message
+                }
                 
             });
 

@@ -69,7 +69,7 @@ impl Future for Input {
                     Input::Generator(p) => p._sender.clone()
 
                 } {
-                    sender.send(message).poll().unwrap();
+                    try_ready!(sender.send(message).poll().map_err(|_| ()));
                 }
             }
 

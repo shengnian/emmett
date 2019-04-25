@@ -71,8 +71,9 @@ impl Future for Filter {
             };
 
             let message = try_ready!(poll);
-            dbg!(message);
 
+            println!("{:#}", message.unwrap());
+            
         }
 
     }
