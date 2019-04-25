@@ -15,18 +15,18 @@ pub enum Output {
 }
 
 impl OutputBlock {
-    pub fn run(&self) {
+    pub fn run(&mut self) {
 
-        let (mut outputs, receiver) = (&self.0, &self.1);
+        let (outputs, receiver) = (&mut self.0, self.1);
         
         outputs.iter_mut()
-            .for_each(|mut output| {
+            .for_each(move |mut output| {
                 match &mut output {
-                    Output::Stdout(ref mut p) => p._receiver = Some(receiver)
+                    Output::Stdout(ref mut p) => p._receiver = Some(&receiver)
                 };
             });
 
-        for output in outputs.into_iter() {
+        for output in self.0 {
             tokio::spawn(output);
         }
         

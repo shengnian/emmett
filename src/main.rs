@@ -64,10 +64,10 @@ fn main() {
     
 }
 
-struct Pipeline(InputBlock, FilterBlock, OutputBlock);
+pub struct Pipeline(InputBlock, FilterBlock, OutputBlock);
 
 impl Pipeline {
-    pub fn run(&self) {
+    pub fn run(self) {
         self.0.run();
         self.1.run();
         self.2.run();
