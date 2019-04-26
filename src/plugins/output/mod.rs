@@ -3,7 +3,7 @@ pub use stdout::*;
 mod elasticsearch;
 pub use elasticsearch::*;
 
-use futures::{Future, Poll, Stream, try_ready, sync::mpsc::Receiver};
+use futures::{Future, Poll, Stream, sync::mpsc::Receiver};
 use serde_json::Value;
 use std::collections::HashMap;
 use crossbeam_channel::unbounded;
@@ -32,7 +32,8 @@ impl OutputBlock {
         }
 
         let broadcast = self.1.for_each(move |message| {
-            s.send(message);
+            // dbg!("hasdlhsdfhsdf");
+            s.send(message).unwrap();
             Ok(())
         });
 

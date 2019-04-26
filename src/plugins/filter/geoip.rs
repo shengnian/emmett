@@ -3,7 +3,7 @@
 use serde_json::{json, value::Value};
 use std::path::Path;
 use reqwest::{Client, RedirectPolicy};
-use futures::{Poll, Async, try_ready, Stream, sync::mpsc::{Receiver, Sender}};
+use futures::{Future, Poll, Async, try_ready, Stream, Sink, sync::mpsc::{Receiver, Sender}};
 
 impl<'a> Stream for GeoipFilter<'a> {
 
@@ -39,9 +39,16 @@ impl<'a> Stream for GeoipFilter<'a> {
                 
             });
 
-            let message = try_ready!(process.poll());
-            Ok(Async::Ready(message))
-                
+            if let Some(message) = try_ready!(process.poll()) {
+                if let Some(sender) = self._sender.to_owned() {
+                    let mut send = sender.send(message.clone());
+                    try_ready!(send.poll().map_err(|_| ()));
+                }
+                Ok(Async::Ready(Some(message)))
+            } else {
+                Ok(Async::Ready(None))
+            }
+            
 
         } else {
             panic!("No receiver found for GeoipFilter.");
@@ -49,28 +56,6 @@ impl<'a> Stream for GeoipFilter<'a> {
     }
     
 }
-
-// impl<'a> GeoipFilter<'a> {
-//     pub fn process(&self, message: Value) -> Value {
-        
-//         if let Some(source) = message.get(self.source) {
-
-//             let source = source.as_str()
-//                 .expect("Couldn't parse Geoip source as string.");
-
-//             let value = match ip_api(source) {
-//                 Ok(v) => v,
-//                 Err(e) => panic!("{}", e)
-//             };
-
-//             json!({ self.target.unwrap(): value })
-
-//         } else {
-//             message
-//         }
-
-//     }
-// }
 
 #[derive(Debug)]
 pub struct GeoipFilter<'a> {

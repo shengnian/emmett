@@ -10,13 +10,16 @@ impl Stream for Stdout {
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
+        
         if let Some(receiver) = &self._receiver {
-            if let Some(message) = receiver.recv().ok() {
+
+            if let Ok(message) = receiver.recv() {
                 println!("{:#}", message);
                 Ok(Async::Ready(Some(message)))
             } else {
                 Ok(Async::Ready(None))
             }
+            
         } else {
             panic!("kjhsdkfjhskjhdsf")
         }

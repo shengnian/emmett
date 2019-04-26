@@ -4,6 +4,8 @@ mod date;
 pub use date::*;
 mod geoip;
 pub use geoip::*;
+mod mutate;
+pub use mutate::*;
 
 use futures::{Poll, Future, Stream, try_ready};
 use futures::sync::mpsc::{channel, Sender, Receiver};
@@ -13,7 +15,8 @@ pub struct FilterBlock(pub Vec<Filter>, pub Receiver<Value>, pub Sender<Value>);
 
 #[derive(Debug)]
 pub enum Filter {
-    Geoip(geoip::GeoipFilter<'static>)
+    Geoip(geoip::GeoipFilter<'static>),
+    MutateFilter(mutate::MutateFilter)
 }
 
 impl FilterBlock {
@@ -31,6 +34,10 @@ impl FilterBlock {
                         p._receiver = Some(rx);
                         p._sender = Some(tx);
                     },
+                    Filter::MutateFilter(ref mut p) => {
+                        p._receiver = Some(rx);
+                        p._sender = Some(tx);
+                    },
                 };
                 
                 acc.push(filter);
@@ -38,15 +45,18 @@ impl FilterBlock {
                     
             });
 
+        
         if let Some(filter) = filters.iter_mut().nth(0) {
             match filter {
-                Filter::Geoip(ref mut p) => p._receiver = Some(receiver)
+                Filter::Geoip(ref mut p) => p._receiver = Some(receiver),
+                Filter::MutateFilter(ref mut p) => p._receiver = Some(receiver)
             };
         }
 
         if let Some(filter) = filters.iter_mut().last() {
             match filter {
-                Filter::Geoip(ref mut p) => p._sender = Some(sender)
+                Filter::Geoip(ref mut p) => p._sender = Some(sender),
+                Filter::MutateFilter(ref mut p) => p._sender = Some(sender)
             };
         }
         
@@ -68,12 +78,13 @@ impl Future for Filter {
 
             let poll = match self {
                 Filter::Geoip(p) => p.poll(),
+                Filter::MutateFilter(p) => p.poll(),
             };
 
-            let message = try_ready!(poll);
+            // if let Some(message) = try_ready!(poll) {
+            //     println!("{:#}", message);
+            // };
 
-            println!("{:#}", message.unwrap());
-            
         }
 
     }

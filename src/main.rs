@@ -32,13 +32,14 @@ fn main() {
 
     // inputs
     let poller = Input::HttpPoller(
-        input::HttpPoller::new(3000, vec!["https://jsonplaceholder.typicode.com/todos/1"])
+        input::HttpPoller::new(3000, vec!["https://jsonplaceholder.typicode.com/posts/1"])
     );
     let generator = Input::Generator(input::Generator::new());
     let exec = Input::Exec(input::Exec::new("ls"));
 
     // filters
     let geoip = Filter::Geoip(filter::GeoipFilter::new("ip"));
+    let mutate = Filter::MutateFilter(filter::MutateFilter::new());
     
     // outputs
     let stdout = Output::Stdout(output::Stdout::new());
@@ -48,7 +49,7 @@ fn main() {
     let (filter_sender, output_receiver) = mpsc::channel(1_024);
 
     // blocks
-    let inputs = InputBlock(vec![exec, generator], input_sender);
+    let inputs = InputBlock(vec![poller, exec, generator], input_sender);
     let filters = FilterBlock(vec![geoip], filter_receiver, filter_sender);
     let outputs = OutputBlock(vec![stdout], output_receiver);
 
