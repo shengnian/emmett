@@ -1,8 +1,8 @@
+/// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-http_poller.html
 use futures::{stream::iter_ok, sync::mpsc::Sender, try_ready, Async, Poll, Stream};
 use reqwest::{ClientBuilder, RedirectPolicy};
 use serde_json::value::Value;
 use std::path::Path;
-/// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-http_poller.html
 use std::time::Duration;
 use tokio::timer::Interval;
 

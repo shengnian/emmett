@@ -11,7 +11,7 @@ pub use clone::*;
 
 use futures::{
     sync::mpsc::{channel, Receiver, Sender},
-    Future, Poll, Stream,
+    Future, Poll, Stream, Sink
 };
 use serde_json::Value;
 
@@ -21,13 +21,20 @@ pub struct FilterBlock(pub Vec<Filter>, pub Receiver<Value>, pub Sender<Value>);
 pub enum Filter {
     Geoip(geoip::GeoipFilter<'static>),
     MutateFilter(mutate::MutateFilter),
-    CloneFilter(clone::CloneFilter)
+    CloneFilter(clone::CloneFilter),
 }
 
 impl FilterBlock {
     pub fn run(self) {
         let (mut filters, receiver, sender) = (self.0, self.1, self.2);
         let count = filters.len();
+
+        // if there are no filters, connect the filter_receiver to the filter_sender
+        
+        // let no_filter_channel = receiver.for_each(|message| {
+        //     sender.clone().send(message);
+        //     Ok(())
+        // });
 
         filters
             .iter_mut()
@@ -92,7 +99,7 @@ impl FilterBlock {
             match filter {
                 Filter::Geoip(ref mut p) => p._receiver = Some(receiver),
                 Filter::MutateFilter(ref mut p) => p._receiver = Some(receiver),
-                Filter::CloneFilter(ref mut p) => p._receiver = Some(receiver)
+                Filter::CloneFilter(ref mut p) => p._receiver = Some(receiver),
             };
         }
 
@@ -100,7 +107,7 @@ impl FilterBlock {
             match filter {
                 Filter::Geoip(ref mut p) => p._sender = Some(sender),
                 Filter::MutateFilter(ref mut p) => p._sender = Some(sender),
-                Filter::CloneFilter(ref mut p) => p._sender = Some(sender)
+                Filter::CloneFilter(ref mut p) => p._sender = Some(sender),
             };
         }
 
@@ -119,7 +126,7 @@ impl Future for Filter {
             let _poll = match self {
                 Filter::Geoip(p) => p.poll(),
                 Filter::MutateFilter(p) => p.poll(),
-                Filter::CloneFilter(p) => p.poll()
+                Filter::CloneFilter(p) => p.poll(),
             };
 
             // if let Some(message) = try_ready!(_poll) {

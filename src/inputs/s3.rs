@@ -1,9 +1,9 @@
+/// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-s3.html
 use futures::{sync::mpsc::Sender, Async, Poll, Stream};
 use serde_json::{json, value::Value};
 use std::collections::HashMap;
 use std::path::Path;
 use std::thread::sleep;
-/// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-s3.html
 use std::time::Duration;
 
 use rusoto_core::{request::HttpClient, Region};

@@ -1,8 +1,9 @@
-use futures::{sync::mpsc::Sender, Async, Poll, Stream};
+/// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-exec.html
+use futures::{sync::mpsc::Sender, Async, Poll, Future, Stream, try_ready};
 use serde_json::{json, value::Value};
 use std::process::Command;
-use std::thread::sleep;
-/// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-exec.html
+use tokio::timer::Interval;
+use tokio_process::CommandExt;
 use std::time::Duration;
 
 impl<'a> Stream for Exec<'a> {
@@ -10,11 +11,19 @@ impl<'a> Stream for Exec<'a> {
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-        sleep(Duration::from_secs(self.interval.unwrap()));
 
-        let message = Command::new(self.command)
+        // self.schedule
+        std::thread::sleep(Duration::from_millis(1000));
+        // try_ready!(self.interval.poll().map_err(|_| ()));
+
+        let mut message = Command::new(self.command)
             .output()
             .expect("Couldn't get Exec command output.");
+
+        // let mut message = Command::new(self.command)
+        //     .output_async();
+
+        // let message = try_ready!(message.poll().map_err(|_| ()));
 
         let message = String::from_utf8(message.stdout).unwrap();
         let message = json!({ "message": message });
@@ -26,7 +35,7 @@ impl<'a> Stream for Exec<'a> {
 #[derive(Debug)]
 pub struct Exec<'a> {
     command: &'a str,
-    interval: Option<u64>,
+    interval: Interval,
     schedule: Option<&'a str>,
     pub _sender: Option<Sender<Value>>,
 }
@@ -35,7 +44,7 @@ impl<'a> Default for Exec<'a> {
     fn default() -> Self {
         Self {
             command: "",
-            interval: Some(5),
+            interval: Interval::new_interval(Duration::from_secs(5)),
             schedule: Some("test"),
             _sender: None,
         }

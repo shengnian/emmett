@@ -12,9 +12,10 @@ impl Stream for MutateFilter {
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
+
         if let Some(ref mut receiver) = &mut self._receiver {
             let mut process = receiver.by_ref().map(|mut input_message| {
-                replace(&mut input_message, "id", json!("yo dawg"));
+                replace(&mut input_message, "ip", json!("yo dawg"));
                 strip(&mut input_message, vec!["message"]);
                 split(&mut input_message, "message", "\n");
                 input_message
@@ -49,7 +50,8 @@ impl Stream for MutateFilter {
 // fn join(message: &mut Value, field: &str, seperator: &str) {
 //     if let Some(val) = message.get_mut(field) {
 //         if val.is_array() {
-//             let joined = val.as_array().unwrap().join(seperator);
+//             let array = val.as_array().unwrap();
+//             let joined = array.join(seperator);
 //             *val = Value::String(joined);
 //         }
 //     }

@@ -58,10 +58,10 @@ impl Future for Input {
 
             if let Some(message) = try_ready!(poll) {
                 if let Some(sender) = match self {
-                    Input::Exec(p) => p._sender.clone(),
-                    Input::HttpPoller(p) => p._sender.clone(),
-                    Input::S3(p) => p._sender.clone(),
-                    Input::Generator(p) => p._sender.clone(),
+                    Input::Exec(p) => p._sender.to_owned(),
+                    Input::HttpPoller(p) => p._sender.to_owned(),
+                    Input::S3(p) => p._sender.to_owned(),
+                    Input::Generator(p) => p._sender.to_owned(),
                 } {
                     try_ready!(sender.send(message).poll().map_err(|_| ()));
                 }
