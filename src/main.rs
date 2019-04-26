@@ -4,13 +4,13 @@ use structopt::{self, StructOpt};
 use pest_derive::Parser;
 use futures::{future::lazy, sync::mpsc};
 
-mod input;
-mod filter;
-mod output;
+mod inputs;
+mod filters;
+mod outputs;
 
-use input::{Input, InputBlock};
-use filter::{Filter, FilterBlock};
-use output::{Output, OutputBlock};
+use inputs::{Input, InputBlock};
+use filters::{Filter, FilterBlock};
+use outputs::{Output, OutputBlock};
 
 #[derive(Parser)]
 #[grammar = "logstash.pest"]
@@ -34,17 +34,17 @@ fn main() {
 
     // inputs
     let poller = Input::HttpPoller(
-        input::HttpPoller::new(3000, vec!["https://jsonplaceholder.typicode.com/posts/1"])
+        inputs::HttpPoller::new(3000, vec!["https://jsonplaceholder.typicode.com/posts/1"])
     );
-    let generator = Input::Generator(input::Generator::new());
-    let exec = Input::Exec(input::Exec::new("ls"));
+    let generator = Input::Generator(inputs::Generator::new());
+    let exec = Input::Exec(inputs::Exec::new("ls"));
 
     // filters
-    let geoip = Filter::Geoip(filter::GeoipFilter::new("ip"));
-    let mutate = Filter::MutateFilter(filter::MutateFilter::new());
+    let geoip = Filter::Geoip(filters::GeoipFilter::new("ip"));
+    let mutate = Filter::MutateFilter(filters::MutateFilter::new());
     
     // outputs
-    let stdout = Output::Stdout(output::Stdout::new());
+    let stdout = Output::Stdout(outputs::Stdout::new());
 
     // communication channels
     let (input_sender, filter_receiver) = mpsc::channel(1_024);
