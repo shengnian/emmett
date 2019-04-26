@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-filters-geoip.html
 
 use serde_json::{json, value::Value};

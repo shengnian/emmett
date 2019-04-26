@@ -6,6 +6,8 @@ mod geoip;
 pub use geoip::*;
 mod mutate;
 pub use mutate::*;
+mod clone;
+pub use clone::*;
 
 use futures::{Poll, Future, Stream, try_ready};
 use futures::sync::mpsc::{channel, Sender, Receiver};
