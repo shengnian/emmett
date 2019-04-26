@@ -1,10 +1,10 @@
 #![allow(unused)]
 
+/// https://www.elastic.co/guide/en/logstash/current/plugins-filters-clone.html
 use futures::{
     sync::mpsc::{Receiver, Sender},
     try_ready, Async, Future, Poll, Sink, Stream,
 };
-/// https://www.elastic.co/guide/en/logstash/current/plugins-filters-clone.html
 use serde_json::{json, value::Value};
 
 impl Stream for CloneFilter {
@@ -38,8 +38,9 @@ pub struct CloneFilter {
 }
 
 impl CloneFilter {
-    pub fn new(clones: Vec<&str>) -> Self {
+    pub fn new(clones: Vec<&'static str>) -> Self {
         Self {
+            clones,
             ..Default::default()
         }
     }

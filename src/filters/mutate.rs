@@ -1,10 +1,10 @@
 #![allow(unused)]
 
+/// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-filters-mutate.html
 use futures::{
     sync::mpsc::{Receiver, Sender},
     try_ready, Async, Future, Poll, Sink, Stream,
 };
-/// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-filters-mutate.html
 use serde_json::{json, value::Value};
 
 impl Stream for MutateFilter {
@@ -15,7 +15,8 @@ impl Stream for MutateFilter {
         if let Some(ref mut receiver) = &mut self._receiver {
             let mut process = receiver.by_ref().map(|mut input_message| {
                 replace(&mut input_message, "id", json!("yo dawg"));
-                // split(&mut input_message, "body", "\n");
+                strip(&mut input_message, vec!["message"]);
+                split(&mut input_message, "message", "\n");
                 input_message
             });
 

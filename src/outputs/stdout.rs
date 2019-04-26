@@ -1,11 +1,10 @@
 #![allow(unused)]
 
+use super::CommonOptions;
+use crossbeam_channel::Receiver;
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-outputs-stdout.html
-
 use futures::{Async, Poll, Stream};
 use serde_json::{json, value::Value};
-use crossbeam_channel::Receiver;
-use super::CommonOptions;
 
 impl Stream for Stdout {
     type Item = Value;

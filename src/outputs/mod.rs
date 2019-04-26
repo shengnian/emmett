@@ -58,7 +58,7 @@ impl Future for Output {
 pub struct CommonOptions<'a> {
     codec: Option<&'a str>,
     enable_metric: Option<bool>,
-    id: Option<&'a str>
+    id: Option<&'a str>,
 }
 
 impl<'a> Default for CommonOptions<'a> {

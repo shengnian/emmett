@@ -42,7 +42,8 @@ fn main() {
     // filters
     let geoip = Filter::Geoip(filters::GeoipFilter::new("ip"));
     let mutate = Filter::MutateFilter(filters::MutateFilter::new());
-
+    let clone = Filter::CloneFilter(filters::CloneFilter::new(Vec::new()));
+        
     // outputs
     let stdout = Output::Stdout(outputs::Stdout::new());
 
@@ -51,7 +52,7 @@ fn main() {
     let (filter_sender, output_receiver) = mpsc::channel(1_024);
 
     // blocks
-    let inputs = InputBlock(vec![poller, exec, generator], input_sender);
+    let inputs = InputBlock(vec![exec], input_sender);
     let filters = FilterBlock(vec![geoip, mutate], filter_receiver, filter_sender);
     let outputs = OutputBlock(vec![stdout], output_receiver);
 
