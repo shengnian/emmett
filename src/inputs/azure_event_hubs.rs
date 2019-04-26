@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-azure_event_hubs.html
 
 #[derive(Debug)]
@@ -18,7 +20,6 @@ pub struct AzureEventHubsInput {
 }
 
 impl Default for AzureEventHubsInput {
-
     fn default() -> Self {
         Self {            
             config_mode: None,
@@ -35,16 +36,13 @@ impl Default for AzureEventHubsInput {
             storage_container: None,
             threads: None
         }
-    }
-    
+    }    
 }
 
 impl AzureEventHubsInput {
-
     pub fn new() -> Self {
         Self {
             ..Default::default()
         }
     }
-    
 }

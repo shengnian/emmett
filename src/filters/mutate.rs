@@ -12,7 +12,6 @@ impl Stream for MutateFilter {
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-
         if let Some(ref mut receiver) = &mut self._receiver {
             let mut process = receiver.by_ref().map(|mut input_message| {
                 replace(&mut input_message, "ip", json!("yo dawg"));

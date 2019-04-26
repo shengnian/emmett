@@ -11,7 +11,7 @@ pub use clone::*;
 
 use futures::{
     sync::mpsc::{channel, Receiver, Sender},
-    Future, Poll, Stream, Sink
+    Future, Poll, Sink, Stream,
 };
 use serde_json::Value;
 
@@ -30,7 +30,7 @@ impl FilterBlock {
         let count = filters.len();
 
         // if there are no filters, connect the filter_receiver to the filter_sender
-        
+
         // let no_filter_channel = receiver.for_each(|message| {
         //     sender.clone().send(message);
         //     Ok(())

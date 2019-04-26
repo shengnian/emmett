@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-beats.html
 
 #[derive(Debug)]
@@ -21,7 +23,6 @@ pub struct BeatsInput {
 }
 
 impl Default for AzureEventHubsInput {
-
     fn default() -> Self {
         Self {            
             add_hostname: None,
@@ -42,15 +43,12 @@ impl Default for AzureEventHubsInput {
             tls_min_version: None
         }
     }
-    
 }
 
 impl AzureEventHubsInput {
-
     pub fn new() -> Self {
         Self {
             ..Default::default()
         }
     }
-    
 }

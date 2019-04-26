@@ -1,17 +1,16 @@
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-exec.html
-use futures::{sync::mpsc::Sender, Async, Poll, Future, Stream, try_ready};
+use futures::{sync::mpsc::Sender, try_ready, Async, Future, Poll, Stream};
 use serde_json::{json, value::Value};
 use std::process::Command;
+use std::time::Duration;
 use tokio::timer::Interval;
 use tokio_process::CommandExt;
-use std::time::Duration;
 
 impl<'a> Stream for Exec<'a> {
     type Item = Value;
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-
         // self.schedule
         std::thread::sleep(Duration::from_millis(1000));
         // try_ready!(self.interval.poll().map_err(|_| ()));
