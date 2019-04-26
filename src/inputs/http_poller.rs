@@ -2,7 +2,7 @@
 
 use std::time::Duration;
 use futures::{stream::iter_ok, Stream, Poll, Async, try_ready, sync::mpsc::Sender};
-use std::thread::sleep;
+use tokio::timer::Interval;
 use reqwest::{ClientBuilder, RedirectPolicy};
 use serde_json::value::Value;
 use std::path::Path;
@@ -35,7 +35,7 @@ impl<'a> Stream for HttpPoller<'a> {
             .expect("Couldn't build Reqwest client.");
 
         // self.schedule
-        sleep(Duration::from_millis(self.schedule));
+        try_ready!(self.schedule.poll().map_err(|_| ()));
 
         // self.urls
         let mut response_stream = iter_ok(self.urls.to_owned())
@@ -87,7 +87,7 @@ pub struct HttpPoller<'a> {
     proxy: Option<&'a str>,
     request_timeout: Option<u64>,
     retry_non_idempotent: Option<bool>,
-    schedule: u64,
+    schedule: Interval,
     socket_timeout: Option<u64>,
     target: Option<&'a str>,
     truststore: Option<&'a Path>,
@@ -120,7 +120,7 @@ impl<'a> Default for HttpPoller<'a> {
             proxy: None,
             request_timeout: Some(60),
             retry_non_idempotent: Some(false),
-            schedule: 5,
+            schedule: Interval::new_interval(Duration::from_secs(5)),
             socket_timeout: Some(10),
             target: None,
             truststore: None,
@@ -136,7 +136,7 @@ impl<'a> Default for HttpPoller<'a> {
 impl<'a> HttpPoller<'a> {
     pub fn new(schedule: u64, urls: Vec<&'a str>) -> Self {
         Self {
-            schedule,
+            schedule: Interval::new_interval(Duration::from_secs(schedule)),
             urls,
             ..Default::default()
         }

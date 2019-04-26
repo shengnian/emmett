@@ -34,7 +34,7 @@ fn main() {
 
     // inputs
     let poller = Input::HttpPoller(
-        inputs::HttpPoller::new(3000, vec!["https://jsonplaceholder.typicode.com/posts/1"])
+        inputs::HttpPoller::new(3, vec!["https://jsonplaceholder.typicode.com/posts/1"])
     );
     let generator = Input::Generator(inputs::Generator::new());
     let exec = Input::Exec(inputs::Exec::new("ls"));
