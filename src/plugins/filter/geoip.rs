@@ -30,7 +30,6 @@ impl<'a> Stream for GeoipFilter<'a> {
                     };
 
                     let output_message = json!({ target: value });
-
                     output_message
 
                 } else {

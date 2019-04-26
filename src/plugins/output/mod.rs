@@ -32,7 +32,6 @@ impl OutputBlock {
         }
 
         let broadcast = self.1.for_each(move |message| {
-            // dbg!("hasdlhsdfhsdf");
             s.send(message).unwrap();
             Ok(())
         });

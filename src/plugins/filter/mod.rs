@@ -22,29 +22,55 @@ pub enum Filter {
 impl FilterBlock {
     pub fn run(self) {
 
-        let (filters, receiver, sender) = (self.0, self.1, self.2);
-        
-        let mut filters = filters.into_iter()
-            .fold(Vec::new(), |mut acc, mut filter| {
+        let (mut filters, receiver, sender) = (self.0, self.1, self.2);
+        let count = filters.len();
+
+        filters.iter_mut().enumerate()
+            .fold(channel(1_024), |mut acc, (i, mut filter)| {
 
                 let (tx, rx) = channel(1_024);
-
-                match &mut filter {
-                    Filter::Geoip(ref mut p) => {
-                        p._receiver = Some(rx);
-                        p._sender = Some(tx);
-                    },
-                    Filter::MutateFilter(ref mut p) => {
-                        p._receiver = Some(rx);
-                        p._sender = Some(tx);
-                    },
-                };
                 
-                acc.push(filter);
-                acc
-                    
+                if i == 0 {
+                    match &mut filter {
+                        Filter::Geoip(ref mut p) => {
+                            p._receiver = None;
+                            p._sender = Some(tx);
+                        },
+                        Filter::MutateFilter(ref mut p) => {
+                            p._receiver = None;
+                            p._sender = Some(tx);
+                        },
+                    };
+                    acc.1 = rx;
+                    acc
+                } else if (i > 0) && (i < (count - 1)) {
+                    match &mut filter {
+                        Filter::Geoip(ref mut p) => {
+                            p._receiver = Some(acc.1);
+                            p._sender = Some(tx);
+                        },
+                        Filter::MutateFilter(ref mut p) => {
+                            p._receiver = Some(acc.1);
+                            p._sender = Some(tx);
+                        },
+                    };
+                    acc.1 = rx;
+                    acc
+                } else {
+                    match &mut filter {
+                        Filter::Geoip(ref mut p) => {
+                            p._receiver = Some(acc.1);
+                            p._sender = None;
+                        },
+                        Filter::MutateFilter(ref mut p) => {
+                            p._receiver = Some(acc.1);
+                            p._sender = None;
+                        },
+                    };
+                    channel(1_024)
+                }
+                
             });
-
         
         if let Some(filter) = filters.iter_mut().nth(0) {
             match filter {
@@ -76,12 +102,12 @@ impl Future for Filter {
 
         loop {
 
-            let poll = match self {
+            let _poll = match self {
                 Filter::Geoip(p) => p.poll(),
                 Filter::MutateFilter(p) => p.poll(),
             };
 
-            // if let Some(message) = try_ready!(poll) {
+            // if let Some(message) = try_ready!(_poll) {
             //     println!("{:#}", message);
             // };
 

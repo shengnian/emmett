@@ -50,7 +50,7 @@ fn main() {
 
     // blocks
     let inputs = InputBlock(vec![poller, exec, generator], input_sender);
-    let filters = FilterBlock(vec![geoip], filter_receiver, filter_sender);
+    let filters = FilterBlock(vec![geoip, mutate], filter_receiver, filter_sender);
     let outputs = OutputBlock(vec![stdout], output_receiver);
 
     // pipeline
