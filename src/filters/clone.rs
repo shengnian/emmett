@@ -1,19 +1,18 @@
 #![allow(unused)]
 
+use futures::{
+    sync::mpsc::{Receiver, Sender},
+    try_ready, Async, Future, Poll, Sink, Stream,
+};
 /// https://www.elastic.co/guide/en/logstash/current/plugins-filters-clone.html
-
 use serde_json::{json, value::Value};
-use futures::{Future, Poll, Async, Sink, try_ready, Stream, sync::mpsc::{Receiver, Sender}};
 
 impl Stream for CloneFilter {
-
     type Item = Value;
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-
         if let Some(ref mut receiver) = &mut self._receiver {
-            
             if let Some(message) = try_ready!(receiver.poll()) {
                 if let Some(sender) = self._sender.to_owned() {
                     let mut send = sender.clone().send(message.clone());
@@ -25,19 +24,17 @@ impl Stream for CloneFilter {
             } else {
                 Ok(Async::Ready(None))
             }
-
         } else {
             panic!("No receiver found for GeoipFilter.");
         }
     }
-    
 }
 
 #[derive(Debug)]
 pub struct CloneFilter {
     clones: Vec<&'static str>,
     pub _receiver: Option<Receiver<Value>>,
-    pub _sender: Option<Sender<Value>>
+    pub _sender: Option<Sender<Value>>,
 }
 
 impl CloneFilter {
@@ -45,7 +42,7 @@ impl CloneFilter {
         Self {
             ..Default::default()
         }
-    }        
+    }
 }
 
 impl Default for CloneFilter {
@@ -53,7 +50,7 @@ impl Default for CloneFilter {
         Self {
             clones: Vec::new(),
             _receiver: None,
-            _sender: None
+            _sender: None,
         }
     }
 }

@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-output-elasticsearch.html
 
 #[derive(Debug)]
@@ -54,11 +56,10 @@ pub struct ElasticsearchOutput {
     user: Option<bool>,
     validate_after_inactivity: Option<bool>,
     version: Option<bool>,
-    version_type: Option<bool>
+    version_type: Option<bool>,
 }
 
 impl Default for ElasticsearchOutput {
-
     fn default() -> ElasticsearchOutput {
         ElasticsearchOutput {
             action: None,
@@ -110,21 +111,18 @@ impl Default for ElasticsearchOutput {
             truststore: None,
             truststore_password: None,
             upsert: None,
-            user:None,
-            validate_after_inactivity:None,
+            user: None,
+            validate_after_inactivity: None,
             version: None,
-            version_type: None
+            version_type: None,
         }
     }
-
 }
 
 impl ElasticsearchOutput {
-
     pub fn new() -> ElasticsearchOutput {
         ElasticsearchOutput {
             ..Default::default()
         }
     }
-    
 }

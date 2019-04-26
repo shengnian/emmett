@@ -1,12 +1,7 @@
+#![allow(unused)]
+
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-filters-date.html
-
 use serde_json::Value;
-
-impl DateFilter {
-    pub fn process(&self, message: Value) -> Value {
-        message
-    }
-}
 
 #[derive(Debug)]
 pub struct DateFilter {
@@ -14,7 +9,7 @@ pub struct DateFilter {
     r#match: Option<Vec<String>>,
     tag_on_failure: Option<Vec<String>>,
     target: Option<String>,
-    timezone: Option<String>
+    timezone: Option<String>,
 }
 
 impl Default for DateFilter {
@@ -24,7 +19,7 @@ impl Default for DateFilter {
             r#match: None,
             tag_on_failure: None,
             target: None,
-            timezone: None
+            timezone: None,
         }
     }
 }

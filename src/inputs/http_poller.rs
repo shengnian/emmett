@@ -1,19 +1,16 @@
-/// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-http_poller.html
-
-use std::time::Duration;
-use futures::{stream::iter_ok, Stream, Poll, Async, try_ready, sync::mpsc::Sender};
-use tokio::timer::Interval;
+use futures::{stream::iter_ok, sync::mpsc::Sender, try_ready, Async, Poll, Stream};
 use reqwest::{ClientBuilder, RedirectPolicy};
 use serde_json::value::Value;
 use std::path::Path;
+/// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-http_poller.html
+use std::time::Duration;
+use tokio::timer::Interval;
 
 impl<'a> Stream for HttpPoller<'a> {
-
     type Item = Value;
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-
         let mut client = ClientBuilder::new();
 
         // self.follow_redirects
@@ -25,47 +22,42 @@ impl<'a> Stream for HttpPoller<'a> {
         if let Some(timeout) = self.request_timeout {
             client = client.timeout(Duration::from_secs(timeout));
         }
-        
+
         // self.cookies
         if self.cookies == Some(true) {
             client = client.cookie_store(true);
         }
 
-        let client = client.build()
-            .expect("Couldn't build Reqwest client.");
+        let client = client.build().expect("Couldn't build Reqwest client.");
 
         // self.schedule
         try_ready!(self.schedule.poll().map_err(|_| ()));
 
         // self.urls
-        let mut response_stream = iter_ok(self.urls.to_owned())
-            .and_then(|uri| {
+        let mut response_stream = iter_ok(self.urls.to_owned()).and_then(|uri| {
+            let url = url::Url::parse(uri).unwrap();
+            let mut req = client.request(http::Method::GET, url);
 
-                let url = url::Url::parse(uri).unwrap();
-                let mut req = client.request(http::Method::GET, url);
+            // self.user and self.password
+            if let Some(user) = self.user {
+                req = req.basic_auth::<&str, &str>(user, self.password);
+            }
 
-                // self.user and self.password
-                if let Some(user) = self.user {
-                    req = req.basic_auth::<&str, &str>(user, self.password);
-                }
-                
-                let res = req.send()
-                    .unwrap()
-                    .json()
-                    .unwrap();
+            let res = req
+                .send()
+                .expect("Couldn't send HttpPoller request.")
+                .json()
+                .expect("Couldn't parse HttpPoller response as JSON.");
 
-                Ok(res)
-                    
-            });
+            Ok(res)
+        });
 
-        let message = try_ready!(response_stream.poll());        
+        let message = try_ready!(response_stream.poll());
 
         Ok(Async::Ready(message))
-            
     }
-    
 }
-    
+
 #[derive(Debug)]
 pub struct HttpPoller<'a> {
     user: Option<&'a str>,
@@ -95,7 +87,7 @@ pub struct HttpPoller<'a> {
     truststore_type: Option<&'a str>,
     urls: Vec<&'a str>,
     validate_after_inactivity: Option<u64>,
-    pub _sender: Option<Sender<Value>>
+    pub _sender: Option<Sender<Value>>,
 }
 
 impl<'a> Default for HttpPoller<'a> {
@@ -128,9 +120,9 @@ impl<'a> Default for HttpPoller<'a> {
             truststore_type: Some("JKS"),
             urls: vec![],
             validate_after_inactivity: Some(200),
-            _sender: None
+            _sender: None,
         }
-    }        
+    }
 }
 
 impl<'a> HttpPoller<'a> {
@@ -140,5 +132,5 @@ impl<'a> HttpPoller<'a> {
             urls,
             ..Default::default()
         }
-    }        
+    }
 }

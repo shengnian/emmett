@@ -1,25 +1,24 @@
+#![allow(unused)]
+
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-outputs-stdout.html
 
 use futures::{Async, Poll, Stream};
 use serde_json::{json, value::Value};
 use crossbeam_channel::Receiver;
+use super::CommonOptions;
 
 impl Stream for Stdout {
-
     type Item = Value;
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-        
         if let Some(receiver) = &self._receiver {
-
             if let Ok(message) = receiver.recv() {
                 println!("{:#}", message);
                 Ok(Async::Ready(Some(message)))
             } else {
                 Ok(Async::Ready(None))
             }
-            
         } else {
             panic!("kjhsdkfjhskjhdsf")
         }
@@ -31,7 +30,8 @@ pub struct Stdout {
     codec: Option<&'static str>,
     enable_metric: Option<bool>,
     id: Option<&'static str>,
-    pub _receiver: Option<Receiver<Value>>
+    _common: CommonOptions<'static>,
+    pub _receiver: Option<Receiver<Value>>,
 }
 
 impl Stdout {
@@ -48,7 +48,8 @@ impl Default for Stdout {
             codec: None,
             enable_metric: None,
             id: None,
-            _receiver: None
+            _common: CommonOptions::default(),
+            _receiver: None,
         }
     }
 }

@@ -1,24 +1,24 @@
 #![allow(unused)]
 
+use futures::{
+    sync::mpsc::{Receiver, Sender},
+    try_ready, Async, Future, Poll, Sink, Stream,
+};
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-filters-mutate.html
-
 use serde_json::{json, value::Value};
-use futures::{Future, Poll, Async, Sink, try_ready, Stream, sync::mpsc::{Receiver, Sender}};
 
 impl Stream for MutateFilter {
-
     type Item = Value;
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-
         if let Some(ref mut receiver) = &mut self._receiver {
-
             let mut process = receiver.by_ref().map(|mut input_message| {
-                replace(&mut input_message, "id", json!("yo dawg"));                
+                replace(&mut input_message, "id", json!("yo dawg"));
+                // split(&mut input_message, "body", "\n");
                 input_message
             });
-            
+
             if let Some(message) = try_ready!(process.poll()) {
                 if let Some(sender) = self._sender.to_owned() {
                     let mut send = sender.send(message.clone());
@@ -28,12 +28,10 @@ impl Stream for MutateFilter {
             } else {
                 Ok(Async::Ready(None))
             }
-
         } else {
             panic!("No receiver found for GeoipFilter.");
         }
     }
-    
 }
 
 /// https://www.elastic.co/guide/en/logstash/current/plugins-filters-mutate.html#plugins-filters-mutate-copy
@@ -61,7 +59,8 @@ fn lowercase(message: &mut Value, fields: Vec<&str>) {
     for field in fields {
         if let Some(val) = message.get_mut(field) {
             if val.is_string() {
-                let lowercase = val.as_str()
+                let lowercase = val
+                    .as_str()
                     .expect("Mutate filter couldn't convert string to lowercase. ")
                     .to_lowercase();
                 *val = Value::String(lowercase);
@@ -97,7 +96,8 @@ fn replace(message: &mut Value, field: &str, new_val: Value) {
 fn split(message: &mut Value, field: &str, separator: &str) {
     if let Some(val) = message.get_mut(field) {
         if let Some(str_val) = val.as_str() {
-            let array: Vec<Value> = str_val.split(separator)
+            let array: Vec<Value> = str_val
+                .split(separator)
                 .map(|v| Value::String(v.to_string()))
                 .collect();
             *val = Value::Array(array);
@@ -150,7 +150,7 @@ fn uppercase(message: &mut Value, fields: Vec<&str>) {
 #[derive(Debug)]
 pub struct MutateFilter {
     pub _receiver: Option<Receiver<Value>>,
-    pub _sender: Option<Sender<Value>>
+    pub _sender: Option<Sender<Value>>,
 }
 
 impl MutateFilter {
@@ -158,14 +158,14 @@ impl MutateFilter {
         Self {
             ..Default::default()
         }
-    }        
+    }
 }
 
 impl Default for MutateFilter {
     fn default() -> Self {
         Self {
             _receiver: None,
-            _sender: None
+            _sender: None,
         }
     }
 }

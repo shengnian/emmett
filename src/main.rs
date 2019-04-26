@@ -1,15 +1,15 @@
 // use log::debug;
 use env_logger::{Builder, Env};
-use structopt::{self, StructOpt};
-use pest_derive::Parser;
 use futures::{future::lazy, sync::mpsc};
+use pest_derive::Parser;
+use structopt::{self, StructOpt};
 
-mod inputs;
 mod filters;
+mod inputs;
 mod outputs;
 
-use inputs::{Input, InputBlock};
 use filters::{Filter, FilterBlock};
+use inputs::{Input, InputBlock};
 use outputs::{Output, OutputBlock};
 
 #[derive(Parser)]
@@ -20,11 +20,10 @@ pub struct ConfigParser;
 #[structopt(name = "(=^•ω•^=) emmett")]
 struct Opt {
     #[structopt(short = "d", long = "debug")]
-    debug: bool
+    debug: bool,
 }
 
 fn main() {
-
     let opt = Opt::from_args();
 
     if opt.debug {
@@ -33,16 +32,17 @@ fn main() {
     }
 
     // inputs
-    let poller = Input::HttpPoller(
-        inputs::HttpPoller::new(3, vec!["https://jsonplaceholder.typicode.com/posts/1"])
-    );
+    let poller = Input::HttpPoller(inputs::HttpPoller::new(
+        3,
+        vec!["https://jsonplaceholder.typicode.com/posts/1"],
+    ));
     let generator = Input::Generator(inputs::Generator::new());
     let exec = Input::Exec(inputs::Exec::new("ls"));
 
     // filters
     let geoip = Filter::Geoip(filters::GeoipFilter::new("ip"));
     let mutate = Filter::MutateFilter(filters::MutateFilter::new());
-    
+
     // outputs
     let stdout = Output::Stdout(outputs::Stdout::new());
 
@@ -57,12 +57,11 @@ fn main() {
 
     // pipeline
     let pipeline = Pipeline(inputs, filters, outputs);
-    
+
     tokio::run(lazy(move || {
         pipeline.run();
         Ok(())
     }));
-    
 }
 
 pub struct Pipeline(InputBlock, FilterBlock, OutputBlock);
@@ -72,6 +71,5 @@ impl Pipeline {
         self.0.run();
         self.1.run();
         self.2.run();
-    } 
+    }
 }
-

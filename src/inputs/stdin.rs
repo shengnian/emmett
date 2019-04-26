@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-input-stdin.html
 
 #[derive(Debug)]
@@ -12,7 +14,7 @@ pub struct Stdin {
 
 impl Default for Stdin {
     fn default() -> Self {
-        Self {            
+        Self {
             add_field: None,
             codec: None,
             enable_metric: None,
@@ -20,7 +22,7 @@ impl Default for Stdin {
             tags: None,
             r#type: None,
         }
-    }    
+    }
 }
 
 impl Stdin {
@@ -28,5 +30,5 @@ impl Stdin {
         Self {
             ..Default::default()
         }
-    }    
+    }
 }

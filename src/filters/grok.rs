@@ -1,6 +1,7 @@
-use std::collections::HashMap;
+#![allow(unused)]
 
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-filters-grok.html
+use std::collections::HashMap;
 
 #[derive(Debug)]
 pub struct GrokFilter {
@@ -14,7 +15,7 @@ pub struct GrokFilter {
     pub patterns_files_glob: Option<String>,
     pub tag_on_failure: Option<Vec<String>>,
     pub tag_on_timeout: Option<String>,
-    pub timeout_millis: Option<u64>
+    pub timeout_millis: Option<u64>,
 }
 
 impl Default for GrokFilter {
@@ -30,7 +31,7 @@ impl Default for GrokFilter {
             patterns_files_glob: None,
             tag_on_failure: None,
             tag_on_timeout: None,
-            timeout_millis: None
+            timeout_millis: None,
         }
     }
 }

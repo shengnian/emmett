@@ -1,36 +1,31 @@
-/// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-s3.html
-
-use std::time::Duration;
-use futures::{Stream, Poll, Async, sync::mpsc::Sender};
-use std::thread::sleep;
+use futures::{sync::mpsc::Sender, Async, Poll, Stream};
 use serde_json::{json, value::Value};
 use std::collections::HashMap;
 use std::path::Path;
+use std::thread::sleep;
+/// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-s3.html
+use std::time::Duration;
 
+use rusoto_core::{request::HttpClient, Region};
 use rusoto_credential::StaticProvider;
-use rusoto_core::{Region, request::HttpClient};
 use rusoto_s3::S3Client;
 
 impl<'a> Stream for S3<'a> {
-
     type Item = Value;
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-
         let creds = StaticProvider::new("key".to_string(), "secret_key".to_string(), None, None);
         let _client = S3Client::new_with(HttpClient::new().unwrap(), creds, Region::UsEast1);
 
         sleep(Duration::from_millis(3000));
 
         let message = json!({ "ip": "108.55.13.247" });
-        
+
         Ok(Async::Ready(Some(message)))
-            
     }
-    
 }
-    
+
 #[derive(Debug)]
 pub struct S3<'a> {
     access_key_id: Option<&'a str>,
@@ -55,7 +50,7 @@ pub struct S3<'a> {
     sincedb_path: Option<&'a Path>,
     temporary_directory: Option<&'a Path>,
     watch_for_new_files: Option<bool>,
-    pub _sender: Option<Sender<Value>>
+    pub _sender: Option<Sender<Value>>,
 }
 
 impl<'a> S3<'a> {
@@ -83,7 +78,7 @@ impl<'a> S3<'a> {
             sincedb_path: None,
             temporary_directory: Some(Path::new("/tmp/logstash")),
             watch_for_new_files: Some(true),
-            _sender: None
-        }        
+            _sender: None,
+        }
     }
 }
