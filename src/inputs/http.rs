@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use tokio::timer::Interval;
 use futures::{Future, Stream, Poll, Async};
 use std::time::Duration;

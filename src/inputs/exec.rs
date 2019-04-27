@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-exec.html
 use futures::{sync::mpsc::Sender, try_ready, Async, Future, Poll, Stream};
 use serde_json::{json, value::Value};

@@ -1,8 +1,10 @@
+#![allow(unused)]
+
+/// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-generator.html
 use crate::inputs::CommonOptions;
 use futures::{sync::mpsc::Sender, Async, Poll, Stream};
 use serde_json::{json, value::Value};
 use std::thread::sleep;
-/// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-generator.html
 use std::time::Duration;
 
 impl<'a> Stream for Generator<'a> {

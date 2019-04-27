@@ -30,9 +30,7 @@ impl OutputBlock {
             };
         });
 
-        for output in self.0 {
-            tokio::spawn(output);
-        }
+        for output in self.0 { tokio::spawn(output); }
 
         let broadcast = self.1.for_each(move |message| {
             s.send(message).unwrap();
