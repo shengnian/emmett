@@ -4,6 +4,8 @@ mod stdout;
 pub use stdout::*;
 mod elasticsearch;
 pub use elasticsearch::*;
+mod datadog;
+pub use datadog::*;
 
 use crossbeam_channel::unbounded;
 use futures::{sync::mpsc::Receiver, Future, Poll, Stream};
