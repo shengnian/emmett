@@ -12,11 +12,13 @@ impl Stream for MutateFilter {
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
+        
         if let Some(ref mut receiver) = &mut self._receiver {
+
             let mut process = receiver.by_ref().map(|mut input_message| {
                 replace(&mut input_message, "ip", json!("yo dawg"));
                 strip(&mut input_message, vec!["message"]);
-                split(&mut input_message, "message", "\n");
+                split(&mut input_message, "body", "\n");
                 input_message
             });
 
@@ -25,14 +27,16 @@ impl Stream for MutateFilter {
                     let mut send = sender.send(message.clone());
                     try_ready!(send.poll().map_err(|_| ()));
                 }
-                Ok(Async::Ready(Some(message)))
-            } else {
-                Ok(Async::Ready(None))
             }
+
+            Ok(Async::Ready(None))
+            
         } else {
             panic!("No receiver found for GeoipFilter.");
         }
+        
     }
+    
 }
 
 /// https://www.elastic.co/guide/en/logstash/current/plugins-filters-mutate.html#plugins-filters-mutate-copy

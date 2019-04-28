@@ -4,22 +4,22 @@
 
 #[derive(Debug)]
 pub struct CloudwatchInput {
-    access_key_id: Option<&str>,
-    aws_credentials_file: Option<&str>,
+    access_key_id: Option<&'static str>,
+    aws_credentials_file: Option<&'static str>,
     combined: Option<bool>,
-    endpoint: Option<&str>,
-    filters: Option<Vec<&str>>,
+    endpoint: Option<&'static str>,
+    filters: Option<Vec<&'static str>>,
     interval: Option<u64>,
-    metrics: Option<Vec<&str>>,
-    namespace: Option<&str>,
+    metrics: Option<Vec<&'static str>>,
+    namespace: Option<&'static str>,
     period: Option<u64>,
-    proxy_uri: Option<&str>,
-    region: Option<&str>,
-    role_arn: Option<&str>,
-    role_session_name: Option<&str>,
-    secret_access:key: Option<&str>,
-    session_token: Option<&str>,
-    statistics: Option<Vec<&str>>,
+    proxy_uri: Option<&'static str>,
+    region: Option<&'static str>,
+    role_arn: Option<&'static str>,
+    role_session_name: Option<&'static str>,
+    secret_access_key: Option<&'static str>,
+    session_token: Option<&'static str>,
+    statistics: Option<Vec<&'static str>>,
     use_ssl: Option<bool>
 }
 
@@ -39,7 +39,7 @@ impl Default for CloudwatchInput {
             region: Some("us-east-1"),
             role_arn: None,
             role_session_name: Some("logstash"),
-            secret_access:key: None,
+            secret_access_key: None,
             session_token: None,
             statistics: Some(vec!["SampleCount", "Average", "Minimum", "Maximum", "Sum"]),
             use_ssl: Some(true)           

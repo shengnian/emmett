@@ -130,7 +130,7 @@ impl<'a> Default for HttpPoller<'a> {
 impl<'a> HttpPoller<'a> {
     pub fn new(schedule: u64, urls: Vec<&'a str>) -> Self {
         Self {
-            schedule: Interval::new_interval(Duration::from_secs(schedule)),
+            schedule: Interval::new_interval(Duration::from_millis(schedule)),
             urls,
             ..Default::default()
         }

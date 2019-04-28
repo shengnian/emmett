@@ -164,7 +164,7 @@ pub use geoip::*;
 mod grok;
 pub use grok::*;
 mod http;
-pub use http::*;
+pub use self::http::*;
 mod i18n;
 pub use i18n::*;
 mod jdbc_static;

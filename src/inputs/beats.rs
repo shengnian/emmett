@@ -5,7 +5,7 @@
 #[derive(Debug)]
 pub struct BeatsInput {
     add_hostname: Option<bool>,
-    cipher_suites: Option<Vec>,
+    cipher_suites: Option<Vec<&'static str>>,
     client_inactivity_timeout: Option<u64>,
     host: Option<String>,
     include_codec_tag: Option<String>,
@@ -15,14 +15,14 @@ pub struct BeatsInput {
     ssl_certificate_authorities: Option<u64>,
     ssl_handshake_timeout: Option<u64>,
     ssl_key: Option<String>,
-    ssk_key_passphrase: Option<String>,
+    ssl_key_passphrase: Option<String>,
     ssl_verify_mode: Option<u64>,
     ssl_peer_metadata: Option<u64>,
     tls_max_version: Option<u64>,
     tls_min_version: Option<u64>
 }
 
-impl Default for AzureEventHubsInput {
+impl Default for BeatsInput {
     fn default() -> Self {
         Self {            
             add_hostname: None,
@@ -45,7 +45,7 @@ impl Default for AzureEventHubsInput {
     }
 }
 
-impl AzureEventHubsInput {
+impl BeatsInput {
     pub fn new() -> Self {
         Self {
             ..Default::default()

@@ -14,12 +14,10 @@ impl Stream for Stdout {
         if let Some(receiver) = &self._receiver {
             if let Ok(message) = receiver.recv() {
                 println!("{:#}", message);
-                Ok(Async::Ready(Some(message)))
-            } else {
-                Ok(Async::Ready(None))
             }
+            Ok(Async::Ready(None))
         } else {
-            panic!("kjhsdkfjhskjhdsf")
+            panic!("No receiver found for Stdout output.")
         }
     }
 }

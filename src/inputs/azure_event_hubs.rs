@@ -5,8 +5,8 @@
 #[derive(Debug)]
 pub struct AzureEventHubsInput {
     config_mode: Option<String>,
-    event_hubs: Option<Vec>,
-    event_hub_connections: Option<Vec>,
+    event_hubs: Option<Vec<&'static str>>,
+    event_hub_connections: Option<Vec<&'static str>>,
     event_hub_connection: Option<String>,
     checkpoint_interval: Option<u64>,
     consumer_group: Option<String>,

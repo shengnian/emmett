@@ -1,14 +1,5 @@
 #![allow(unused)]
 
-mod stdout;
-pub use stdout::*;
-mod elasticsearch;
-pub use elasticsearch::*;
-mod datadog;
-pub use datadog::*;
-mod csv;
-pub use csv::*;
-    
 use crossbeam_channel::unbounded;
 use futures::{sync::mpsc::Receiver, Future, Poll, Stream};
 use serde_json::Value;
@@ -22,22 +13,28 @@ pub enum Output {
 
 impl OutputBlock {
     pub fn run(mut self) {
+
+        // use crossbeam_channel to account for spmc instead of mpsc
         let (s, r) = unbounded();
 
+        // attach a receiver to each output plugin
         self.0.iter_mut().for_each(|output| {
             match output {
                 Output::Stdout(ref mut p) => p._receiver = Some(r.clone()),
             };
         });
 
+        // run each output plugin
         for output in self.0 { tokio::spawn(output); }
 
+        // for every message sent to the `output` block, send to each output separately
         let broadcast = self.1.for_each(move |message| {
             s.send(message).unwrap();
             Ok(())
         });
 
         tokio::spawn(broadcast);
+
     }
 }
 
@@ -72,3 +69,12 @@ impl<'a> Default for CommonOptions<'a> {
         }
     }
 }
+
+mod csv;
+pub use csv::*;
+mod datadog;
+pub use datadog::*;
+mod elasticsearch;
+pub use elasticsearch::*;
+mod stdout;
+pub use stdout::*;

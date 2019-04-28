@@ -85,7 +85,7 @@ impl<'a> Default for CommonOptions<'a> {
 mod azure_event_hubs;
 pub use azure_event_hubs::*;
 mod beats;
-pub use beats;
+pub use beats::*;
 mod cloudwatch;
 pub use cloudwatch::*;
 mod couchdb_changes;
@@ -115,7 +115,7 @@ pub use graphite::*;
 mod heartbeat;
 pub use heartbeat::*;
 mod http;
-pub use http::*;
+pub use self::http::*;
 mod http_poller;
 pub use http_poller::*;
 mod imap;
