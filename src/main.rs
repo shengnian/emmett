@@ -1,10 +1,9 @@
 #![allow(unused)]
 
-use log::debug;
-use env_logger::{Builder, Env};
+// use log::debug;
+// use env_logger::{Builder, Env};
 use futures::{future::lazy, sync::mpsc};
 use pest_derive::Parser;
-use structopt::{self, StructOpt};
 
 mod filters;
 mod inputs;
@@ -17,21 +16,7 @@ use outputs::{Output, OutputBlock};
 #[grammar = "logstash.pest"]
 pub struct ConfigParser;
 
-#[derive(Debug, StructOpt)]
-#[structopt(name = "(=^•ω•^=) emmett")]
-struct Opt {
-    #[structopt(short = "d", long = "debug")]
-    debug: bool,
-}
-
 fn main() {
-
-    let opt = Opt::from_args();
-
-    if opt.debug {
-        let debug = Env::default().default_filter_or("debug");
-        Builder::from_env(debug).init();
-    }
 
     // inputs
     let poller = Input::HttpPoller(inputs::HttpPoller::new(

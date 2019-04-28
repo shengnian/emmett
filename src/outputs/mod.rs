@@ -139,7 +139,7 @@ pub use gelf::*;
 pub use google_bigquery::*;
 pub use google_pubsub::*;
 pub use graphite::*;
-pub use http::*;
+pub use self::http::*;
 pub use influxdb::*;
 pub use irc::*;
 pub use juggernaut::*;
