@@ -50,6 +50,7 @@ fn main() {
         pipeline.run();
         Ok(())
     }));
+    
 }
 
 pub struct Pipeline(InputBlock, FilterBlock, OutputBlock);
