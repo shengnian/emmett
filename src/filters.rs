@@ -9,8 +9,9 @@ pub struct FilterBlock(pub Vec<Filter>, pub Receiver<Value>, pub Sender<Value>);
 #[derive(Debug)]
 pub enum Filter {
     Geoip(geoip::GeoipFilter<'static>),
-    MutateFilter(mutate::MutateFilter),
-    CloneFilter(clone::CloneFilter),
+    Json(json::JsonFilter<'static>),
+    Mutate(mutate::MutateFilter),
+    Clone(clone::CloneFilter),
 }
 
 impl FilterBlock {
@@ -33,15 +34,19 @@ impl FilterBlock {
 
                 if i == 0 {
                     match &mut filter {
+                        Filter::Clone(ref mut p) => {
+                            p._receiver = None;
+                            p._sender = Some(tx);
+                        }
                         Filter::Geoip(ref mut p) => {
                             p._receiver = None;
                             p._sender = Some(tx);
                         }
-                        Filter::MutateFilter(ref mut p) => {
+                        Filter::Json(ref mut p) => {
                             p._receiver = None;
                             p._sender = Some(tx);
                         }
-                        Filter::CloneFilter(ref mut p) => {
+                        Filter::Mutate(ref mut p) => {
                             p._receiver = None;
                             p._sender = Some(tx);
                         }
@@ -50,53 +55,67 @@ impl FilterBlock {
                     acc
                 } else if (i > 0) && (i < (count - 1)) {
                     match &mut filter {
+                        Filter::Clone(ref mut p) => {
+                            p._receiver = Some(acc.1);
+                            p._sender = Some(tx);
+                        }
                         Filter::Geoip(ref mut p) => {
                             p._receiver = Some(acc.1);
                             p._sender = Some(tx);
                         }
-                        Filter::MutateFilter(ref mut p) => {
+                        Filter::Json(ref mut p) => {
                             p._receiver = Some(acc.1);
                             p._sender = Some(tx);
                         }
-                        Filter::CloneFilter(ref mut p) => {
+                        Filter::Mutate(ref mut p) => {
                             p._receiver = Some(acc.1);
                             p._sender = Some(tx);
                         }
                     };
+                    
                     acc.1 = rx;
                     acc
+                        
                 } else {
+                    
                     match &mut filter {
+                        Filter::Clone(ref mut p) => {
+                            p._receiver = Some(acc.1);
+                            p._sender = None;
+                        }
                         Filter::Geoip(ref mut p) => {
                             p._receiver = Some(acc.1);
                             p._sender = None;
                         }
-                        Filter::MutateFilter(ref mut p) => {
+                        Filter::Json(ref mut p) => {
                             p._receiver = Some(acc.1);
                             p._sender = None;
                         }
-                        Filter::CloneFilter(ref mut p) => {
+                        Filter::Mutate(ref mut p) => {
                             p._receiver = Some(acc.1);
                             p._sender = None;
                         }
                     };
+                    
                     channel(1_024)
                 }
             });
 
         if let Some(filter) = filters.get_mut(0) {
             match filter {
+                Filter::Clone(ref mut p) => p._receiver = Some(receiver),
                 Filter::Geoip(ref mut p) => p._receiver = Some(receiver),
-                Filter::MutateFilter(ref mut p) => p._receiver = Some(receiver),
-                Filter::CloneFilter(ref mut p) => p._receiver = Some(receiver),
+                Filter::Json(ref mut p) => p._receiver = Some(receiver),
+                Filter::Mutate(ref mut p) => p._receiver = Some(receiver),
             };
         }
 
         if let Some(filter) = filters.iter_mut().last() {
             match filter {
+                Filter::Clone(ref mut p) => p._sender = Some(sender),
                 Filter::Geoip(ref mut p) => p._sender = Some(sender),
-                Filter::MutateFilter(ref mut p) => p._sender = Some(sender),
-                Filter::CloneFilter(ref mut p) => p._sender = Some(sender),
+                Filter::Json(ref mut p) => p._sender = Some(sender),
+                Filter::Mutate(ref mut p) => p._sender = Some(sender),
             };
         }
 
@@ -113,9 +132,10 @@ impl Future for Filter {
     fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
         loop {
             let _poll = match self {
+                Filter::Clone(p) => p.poll(),
                 Filter::Geoip(p) => p.poll(),
-                Filter::MutateFilter(p) => p.poll(),
-                Filter::CloneFilter(p) => p.poll(),
+                Filter::Json(p) => p.poll(),
+                Filter::Mutate(p) => p.poll(),
             };
 
             // if let Some(message) = try_ready!(_poll) {

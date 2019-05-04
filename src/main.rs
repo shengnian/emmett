@@ -28,8 +28,9 @@ fn main() {
 
     // filters
     let geoip = Filter::Geoip(filters::GeoipFilter::new("ip"));
-    let mutate = Filter::MutateFilter(filters::MutateFilter::new());
-    let clone = Filter::CloneFilter(filters::CloneFilter::new(Vec::new()));
+    let mutate = Filter::Mutate(filters::MutateFilter::new());
+    let clone = Filter::Clone(filters::CloneFilter::new(Vec::new()));
+    let json = Filter::Json(filters::JsonFilter::new("jsonString"));
 
     // outputs
     let stdout = Output::Stdout(outputs::Stdout::new());
@@ -39,8 +40,8 @@ fn main() {
     let (filter_sender, output_receiver) = mpsc::channel(1_024);
 
     // blocks
-    let inputs = InputBlock(vec![poller], input_sender);
-    let filters = FilterBlock(vec![mutate], filter_receiver, filter_sender);
+    let inputs = InputBlock(vec![generator], input_sender);
+    let filters = FilterBlock(vec![json, mutate], filter_receiver, filter_sender);
     let outputs = OutputBlock(vec![stdout], output_receiver);
 
     // pipeline

@@ -16,7 +16,7 @@ impl Stream for MutateFilter {
         if let Some(ref mut receiver) = &mut self._receiver {
 
             let mut process = receiver.by_ref().map(|mut input_message| {
-                replace(&mut input_message, "ip", json!("yo dawg"));
+                // replace(&mut input_message, "ip", json!("yo dawg"));
                 strip(&mut input_message, vec!["message"]);
                 split(&mut input_message, "body", "\n");
                 input_message
