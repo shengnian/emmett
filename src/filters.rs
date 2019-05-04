@@ -130,7 +130,9 @@ impl Future for Filter {
     type Error = ();
 
     fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
+
         loop {
+            
             let _poll = match self {
                 Filter::Clone(p) => p.poll(),
                 Filter::Geoip(p) => p.poll(),
@@ -142,6 +144,7 @@ impl Future for Filter {
             //     println!("{:#}", message);
             // };
         }
+        
     }
 }
 

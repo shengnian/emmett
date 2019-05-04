@@ -58,13 +58,13 @@ impl<'a> Stream for JsonFilter<'a> {
 
             if let Some(message) = try_ready!(process.poll()) {
                 if let Some(sender) = self._sender.to_owned() {
-                    let mut send = sender.send(message.clone());
+                    let mut send = sender.send(message);
                     try_ready!(send.poll().map_err(|_| ()));
                 }
             }
 
             Ok(Async::Ready(None))
-                
+            
         } else {
             panic!("No receiver found for JsonFilter.");
         }
