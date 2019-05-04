@@ -12,6 +12,7 @@ pub enum Filter {
     Json(json::JsonFilter<'static>),
     Mutate(mutate::MutateFilter),
     Clone(clone::CloneFilter),
+    Fingerprint(fingerprint::FingerprintFilter<'static>)
 }
 
 impl FilterBlock {
@@ -38,6 +39,10 @@ impl FilterBlock {
                             p._receiver = None;
                             p._sender = Some(tx);
                         }
+                        Filter::Fingerprint(ref mut p) => {
+                            p._receiver = None;
+                            p._sender = Some(tx);
+                        }
                         Filter::Geoip(ref mut p) => {
                             p._receiver = None;
                             p._sender = Some(tx);
@@ -54,8 +59,13 @@ impl FilterBlock {
                     acc.1 = rx;
                     acc
                 } else if (i > 0) && (i < (count - 1)) {
+                    
                     match &mut filter {
                         Filter::Clone(ref mut p) => {
+                            p._receiver = Some(acc.1);
+                            p._sender = Some(tx);
+                        }
+                        Filter::Fingerprint(ref mut p) => {
                             p._receiver = Some(acc.1);
                             p._sender = Some(tx);
                         }
@@ -83,6 +93,10 @@ impl FilterBlock {
                             p._receiver = Some(acc.1);
                             p._sender = None;
                         }
+                        Filter::Fingerprint(ref mut p) => {
+                            p._receiver = Some(acc.1);
+                            p._sender = None;
+                        }
                         Filter::Geoip(ref mut p) => {
                             p._receiver = Some(acc.1);
                             p._sender = None;
@@ -104,6 +118,7 @@ impl FilterBlock {
         if let Some(filter) = filters.get_mut(0) {
             match filter {
                 Filter::Clone(ref mut p) => p._receiver = Some(receiver),
+                Filter::Fingerprint(ref mut p) => p._receiver = Some(receiver),
                 Filter::Geoip(ref mut p) => p._receiver = Some(receiver),
                 Filter::Json(ref mut p) => p._receiver = Some(receiver),
                 Filter::Mutate(ref mut p) => p._receiver = Some(receiver),
@@ -113,6 +128,7 @@ impl FilterBlock {
         if let Some(filter) = filters.iter_mut().last() {
             match filter {
                 Filter::Clone(ref mut p) => p._sender = Some(sender),
+                Filter::Fingerprint(ref mut p) => p._sender = Some(sender),
                 Filter::Geoip(ref mut p) => p._sender = Some(sender),
                 Filter::Json(ref mut p) => p._sender = Some(sender),
                 Filter::Mutate(ref mut p) => p._sender = Some(sender),
@@ -135,6 +151,7 @@ impl Future for Filter {
             
             let _poll = match self {
                 Filter::Clone(p) => p.poll(),
+                Filter::Fingerprint(p) => p.poll(),
                 Filter::Geoip(p) => p.poll(),
                 Filter::Json(p) => p.poll(),
                 Filter::Mutate(p) => p.poll(),

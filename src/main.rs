@@ -28,6 +28,7 @@ fn main() {
     let geoip = Filter::Geoip(filters::GeoipFilter::new("ip"));
     let mutate = Filter::Mutate(filters::MutateFilter::new());
     let clone = Filter::Clone(filters::CloneFilter::new(Vec::new()));
+    let fingerprint = Filter::Fingerprint(filters::FingerprintFilter::new());
 
     let json = Filter::Json(filters::JsonFilter {
             skip_on_invalid_json: Some(false),
@@ -47,7 +48,7 @@ fn main() {
 
     // blocks
     let inputs = InputBlock(vec![generator], input_sender);
-    let filters = FilterBlock(vec![json], filter_receiver, filter_sender);
+    let filters = FilterBlock(vec![json, fingerprint], filter_receiver, filter_sender);
     let outputs = OutputBlock(vec![stdout], output_receiver);
 
     // pipeline

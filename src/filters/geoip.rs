@@ -1,11 +1,11 @@
 #![allow(unused)]
 
+/// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-filters-geoip.html
 use futures::{
     sync::mpsc::{Receiver, Sender},
     try_ready, Async, Future, Poll, Sink, Stream,
 };
 use reqwest::{Client, RedirectPolicy};
-/// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-filters-geoip.html
 use serde_json::{json, value::Value};
 use std::path::Path;
 
