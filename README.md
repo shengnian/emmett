@@ -1,8 +1,5 @@
-This project is currently in alpha, meaning that it has some functionality that is very limited.
-It is currently not suitable for production.
-
-Merge requests and feedback are greatly appreciated.
-
 # About
 
-Emmett is an ETL tool that supports drop-in Logstash functionality through a config setting.
+Emmett is an ETL tool with the goal of supporting drop-in Logstash functionality through a config setting.
+
+This project is currently under heavy development, and contributors are welcome! Feedback is also greatly appreciated.
