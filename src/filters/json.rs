@@ -21,6 +21,7 @@ impl<'a> Stream for JsonFilter<'a> {
         let source = self.source;
         let skip_invalid = self.skip_on_invalid_json;
         let target = self.target;
+        let tags = &self.tag_on_failure;
         
         if let Some(ref mut receiver) = &mut self._receiver {
 
@@ -45,6 +46,9 @@ impl<'a> Stream for JsonFilter<'a> {
                         input_message
                     } else {
                         // add tag
+                        if let Some(tags) = &tags {
+                            tag(&mut input_message, tags);
+                        }
                         input_message
                     }
                 }
@@ -65,7 +69,11 @@ impl<'a> Stream for JsonFilter<'a> {
             panic!("No receiver found for JsonFilter.");
         }
         
-    }
+    }    
+}
+
+fn tag<'a>(message: &mut Value, tags: &Vec<&'a str>) {
+    message["tags"] = json!(tags);
 }
 
 #[derive(Debug)]

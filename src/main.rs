@@ -1,7 +1,5 @@
 #![allow(unused)]
 
-// use log::debug;
-// use env_logger::{Builder, Env};
 use futures::{future::lazy, sync::mpsc};
 use pest_derive::Parser;
 
