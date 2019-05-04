@@ -30,7 +30,15 @@ fn main() {
     let geoip = Filter::Geoip(filters::GeoipFilter::new("ip"));
     let mutate = Filter::Mutate(filters::MutateFilter::new());
     let clone = Filter::Clone(filters::CloneFilter::new(Vec::new()));
-    let json = Filter::Json(filters::JsonFilter::new("jsonString"));
+
+    let json = Filter::Json(filters::JsonFilter {
+            skip_on_invalid_json: Some(false),
+            source: "jsonString",
+            tag_on_failure: Some(vec!["_jsonparsefailure"]),
+            target: Some("jsonString"),
+            _receiver: None,
+            _sender: None
+        });
 
     // outputs
     let stdout = Output::Stdout(outputs::Stdout::new());
@@ -41,7 +49,7 @@ fn main() {
 
     // blocks
     let inputs = InputBlock(vec![generator], input_sender);
-    let filters = FilterBlock(vec![json, mutate], filter_receiver, filter_sender);
+    let filters = FilterBlock(vec![json], filter_receiver, filter_sender);
     let outputs = OutputBlock(vec![stdout], output_receiver);
 
     // pipeline

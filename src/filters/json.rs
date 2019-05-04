@@ -19,7 +19,9 @@ impl<'a> Stream for JsonFilter<'a> {
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
 
         let source = self.source;
-
+        let skip_invalid = self.skip_on_invalid_json;
+        let target = self.target;
+        
         if let Some(ref mut receiver) = &mut self._receiver {
 
             let mut process = receiver.by_ref().map(|mut input_message| {
@@ -29,9 +31,24 @@ impl<'a> Stream for JsonFilter<'a> {
                     .as_str()
                     .unwrap();
 
-                let message: Value = serde_json::from_str(json_string).unwrap();
+                if let Ok(json) = serde_json::from_str(json_string) {
 
-                message
+                    if let Some(t) = target {
+                        input_message[t] = json;
+                        input_message
+                    } else {
+                        json
+                    }
+                    
+                } else {
+                    if skip_invalid == Some(true) {
+                        input_message
+                    } else {
+                        // add tag
+                        input_message
+                    }
+                }
+                
                     
             });
 
@@ -53,10 +70,10 @@ impl<'a> Stream for JsonFilter<'a> {
 
 #[derive(Debug)]
 pub struct JsonFilter<'a> {
-    skip_on_invalid_json: Option<bool>,
-    source: &'a str,
-    tag_on_failure: Option<Vec<&'a str>>,
-    target: Option<&'a str>,
+    pub skip_on_invalid_json: Option<bool>,
+    pub source: &'a str,
+    pub tag_on_failure: Option<Vec<&'a str>>,
+    pub target: Option<&'a str>,
     pub _receiver: Option<Receiver<Value>>,
     pub _sender: Option<Sender<Value>>,
 }
