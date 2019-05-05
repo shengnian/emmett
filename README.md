@@ -34,8 +34,8 @@ match = { message = "%{COMBINEDAPACHELOG}" }
 match = [ "timestamp" , "dd/MMM/yyyy:HH:mm:ss Z" ]	
 
 [output.stdout]
-stdout = { codec = "rubydebug" }
+codec = "rubydebug"
 
 [output.elasticsearch]
-elasticsearch = { hosts = ["localhost:9200"] }
+hosts = ["localhost:9200"]
 ```
