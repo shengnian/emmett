@@ -1,0 +1,15 @@
+# This is a TOML-based emmett config file.
+
+[input.stdin]
+
+[filter.grok]
+match = { message = "%{COMBINEDAPACHELOG}" }
+    
+[filter.date]
+match = [ "timestamp" , "dd/MMM/yyyy:HH:mm:ss Z" ]	
+
+[output.stdout]
+stdout = { codec = "rubydebug" }
+
+[output.elasticsearch]
+elasticsearch = { hosts = ["localhost:9200"] }
