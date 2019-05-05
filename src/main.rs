@@ -1,10 +1,9 @@
 #![allow(unused)]
 
-use std::fs::File;
-use std::io::Read;
-
 use futures::{future::lazy, sync::mpsc};
 use pest_derive::Parser;
+
+mod config;
 
 mod filters;
 mod inputs;
@@ -18,18 +17,6 @@ use outputs::{Output, OutputBlock};
 pub struct ConfigParser;
 
 fn main() {
-
-    let mut config_file = File::open("./example_configs/full.toml")
-        .expect("Couldn't read config file.");
-
-    let mut config = String::new();
-    config_file.read_to_string(&mut config)
-        .expect("Couldn't read config file.");
-
-    let config: toml::Value = config.parse()
-        .expect("Couldn't parse config TOML");
-
-    dbg!(config);
         
     // inputs
     let poller = Input::HttpPoller(inputs::HttpPoller::new(

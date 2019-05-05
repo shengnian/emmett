@@ -23,7 +23,7 @@ The Logstash configuration file parser is currently on hold until the plugins th
 Merge requests are always welcome though!
 
 ```toml
-# This is a TOML-based emmett config file.
+# This is an emmett config file.
 
 [input.stdin]
 
