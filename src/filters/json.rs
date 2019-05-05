@@ -1,7 +1,4 @@
-#![allow(unused)]
-
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-filters-json.html
-
 use std::path::Path;
 use serde_json::{json, value::Value};
 use std::thread::sleep;
@@ -12,7 +9,7 @@ use futures::{
     try_ready, Async, Future, Poll, Sink, Stream,
 };
 
-impl<'a> Stream for JsonFilter<'a> {
+impl<'a> Stream for Json<'a> {
     type Item = Value;
     type Error = ();
 
@@ -66,7 +63,7 @@ impl<'a> Stream for JsonFilter<'a> {
             Ok(Async::Ready(None))
             
         } else {
-            panic!("No receiver found for JsonFilter.");
+            panic!("No receiver found for Json.");
         }
         
     }    
@@ -77,7 +74,7 @@ fn tag<'a>(message: &mut Value, tags: &Vec<&'a str>) {
 }
 
 #[derive(Debug)]
-pub struct JsonFilter<'a> {
+pub struct Json<'a> {
     pub skip_on_invalid_json: Option<bool>,
     pub source: &'a str,
     pub tag_on_failure: Option<Vec<&'a str>>,
@@ -86,7 +83,7 @@ pub struct JsonFilter<'a> {
     pub _sender: Option<Sender<Value>>,
 }
 
-impl<'a> JsonFilter<'a> {
+impl<'a> Json<'a> {
     pub fn new(source: &'a str) -> Self {
         Self {
             skip_on_invalid_json: Some(false),

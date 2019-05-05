@@ -8,7 +8,7 @@ use futures::{
 };
 use sha1::Sha1;
 
-impl<'a> Stream for FingerprintFilter<'a> {
+impl<'a> Stream for Fingerprint<'a> {
     type Item = Value;
     type Error = ();
 
@@ -31,7 +31,7 @@ impl<'a> Stream for FingerprintFilter<'a> {
             Ok(Async::Ready(None))
             
         } else {
-            panic!("No receiver found for FingerprintFilter.");
+            panic!("No receiver found for Fingerprint.");
         }
         
     }
@@ -45,7 +45,7 @@ fn fingerprint_sha1(message: &Value) -> Value {
 }
 
 #[derive(Debug)]
-pub struct FingerprintFilter<'a> {
+pub struct Fingerprint<'a> {
     base64encode: Option<bool>,
     concatenate_sources: Option<bool>,
     concatenate_all_fields: Option<bool>,
@@ -57,7 +57,7 @@ pub struct FingerprintFilter<'a> {
     pub _sender: Option<Sender<Value>>,
 }
 
-impl<'a> FingerprintFilter<'a> {
+impl<'a> Fingerprint<'a> {
     pub fn new() -> Self {
         Self {
             base64encode: Some(false),

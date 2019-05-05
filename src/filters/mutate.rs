@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-filters-mutate.html
 use futures::{
     sync::mpsc::{Receiver, Sender},
@@ -7,7 +5,7 @@ use futures::{
 };
 use serde_json::{json, value::Value};
 
-impl Stream for MutateFilter {
+impl Stream for Mutate {
     type Item = Value;
     type Error = ();
 
@@ -154,12 +152,12 @@ fn uppercase(message: &mut Value, fields: Vec<&str>) {
 // }
 
 #[derive(Debug)]
-pub struct MutateFilter {
+pub struct Mutate {
     pub _receiver: Option<Receiver<Value>>,
     pub _sender: Option<Sender<Value>>,
 }
 
-impl MutateFilter {
+impl Mutate {
     pub fn new() -> Self {
         Self {
             ..Default::default()
@@ -167,7 +165,7 @@ impl MutateFilter {
     }
 }
 
-impl Default for MutateFilter {
+impl Default for Mutate {
     fn default() -> Self {
         Self {
             _receiver: None,

@@ -25,12 +25,12 @@ fn main() {
     let exec = Input::Exec(inputs::Exec::new("ls"));
 
     // filters
-    let geoip = Filter::Geoip(filters::GeoipFilter::new("ip"));
-    let mutate = Filter::Mutate(filters::MutateFilter::new());
-    let clone = Filter::Clone(filters::CloneFilter::new(Vec::new()));
-    let fingerprint = Filter::Fingerprint(filters::FingerprintFilter::new());
+    let geoip = Filter::Geoip(filters::Geoip::new("ip"));
+    let mutate = Filter::Mutate(filters::Mutate::new());
+    let clone = Filter::Clone(filters::Clone::new(Vec::new()));
+    let fingerprint = Filter::Fingerprint(filters::Fingerprint::new());
 
-    let json = Filter::Json(filters::JsonFilter {
+    let json = Filter::Json(filters::Json {
             skip_on_invalid_json: Some(false),
             source: "jsonString",
             tag_on_failure: Some(vec!["_jsonparsefailure"]),

@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-filters-geoip.html
 use futures::{
     sync::mpsc::{Receiver, Sender},
@@ -9,7 +7,7 @@ use reqwest::{Client, RedirectPolicy};
 use serde_json::{json, value::Value};
 use std::path::Path;
 
-impl<'a> Stream for GeoipFilter<'a> {
+impl<'a> Stream for Geoip<'a> {
     type Item = Value;
     type Error = ();
 
@@ -47,13 +45,13 @@ impl<'a> Stream for GeoipFilter<'a> {
             Ok(Async::Ready(None))
 
         } else {
-            panic!("No receiver found for GeoipFilter.");
+            panic!("No receiver found for Geoip.");
         }
     }
 }
 
 #[derive(Debug)]
-pub struct GeoipFilter<'a> {
+pub struct Geoip<'a> {
     cache_size: Option<u64>,
     database: Option<&'a Path>,
     default_database_type: Option<&'a str>,
@@ -65,7 +63,7 @@ pub struct GeoipFilter<'a> {
     pub _sender: Option<Sender<Value>>,
 }
 
-impl<'a> GeoipFilter<'a> {
+impl<'a> Geoip<'a> {
     pub fn new(source: &'a str) -> Self {
         Self {
             source,
@@ -74,7 +72,7 @@ impl<'a> GeoipFilter<'a> {
     }
 }
 
-impl<'a> Default for GeoipFilter<'a> {
+impl<'a> Default for Geoip<'a> {
     fn default() -> Self {
         Self {
             cache_size: Some(1000),

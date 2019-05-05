@@ -8,11 +8,11 @@ pub struct FilterBlock(pub Vec<Filter>, pub Receiver<Value>, pub Sender<Value>);
 
 #[derive(Debug)]
 pub enum Filter {
-    Geoip(geoip::GeoipFilter<'static>),
-    Json(json::JsonFilter<'static>),
-    Mutate(mutate::MutateFilter),
-    Clone(clone::CloneFilter),
-    Fingerprint(fingerprint::FingerprintFilter<'static>)
+    Geoip(geoip::Geoip<'static>),
+    Json(json::Json<'static>),
+    Mutate(mutate::Mutate),
+    Clone(clone::Clone),
+    Fingerprint(fingerprint::Fingerprint<'static>)
 }
 
 impl FilterBlock {
