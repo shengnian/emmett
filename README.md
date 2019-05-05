@@ -4,6 +4,8 @@ Emmett is an ETL tool with the goal of supporting drop-in Logstash functionality
 
 Note: This project is currently under heavy development, and contributors are welcome! Feedback is also greatly appreciated.
 
+# Why Emmett
+
 Emmett is written in Rust and uses [Tokio](https://tokio.rs/), which means:
 
 - Blazing fast
