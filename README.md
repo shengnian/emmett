@@ -2,17 +2,16 @@
 
 # About
 
-Emmett is an ETL tool with the goal of serving as a drop-in [Logstash](https://www.elastic.co/products/logstash) replacement as well as
+emmett is an ETL tool with the goal of serving as a drop-in [Logstash](https://www.elastic.co/products/logstash) replacement as well as
 providing added / improved features.
 
-# Why Emmett
-
-Emmett is written in [Rust](https://www.rust-lang.org/) and uses [Tokio](https://tokio.rs/), which means:
+emmett is written in [Rust](https://www.rust-lang.org/) and uses [Tokio](https://tokio.rs/), which means:
 
 - Blazing fast ⚡⚡⚡
 - Very small resource requirements (currently needs less than 5 MB RAM for simple pipelines)
 - No garbage collector == better and more consistent performance
 - Completely asynchronous - plugins operate independently of one another
+- Multithreaded and [work-stealing](https://en.wikipedia.org/wiki/Work_stealing)
 - No need to install Java
 
 # Usage
