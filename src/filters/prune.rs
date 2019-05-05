@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 /// Specifiction: https://www.elastic.co/guide/en/logstash/current/plugins-filters-prune.html
 use std::collections::HashMap;
 use std::sync::mpsc::{Receiver, Sender};
