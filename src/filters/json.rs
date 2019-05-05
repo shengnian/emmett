@@ -24,20 +24,14 @@ impl<'a> Stream for Json<'a> {
                 let json_string = input_message.get(source).unwrap().as_str().unwrap();
 
                 if let Ok(json) = serde_json::from_str(json_string) {
-                    if let Some(t) = target {
-                        input_message[t] = json;
+                        input_message[target] = json;
                         input_message
-                    } else {
-                        json
-                    }
                 } else {
-                    if skip_invalid == Some(true) {
+                    if skip_invalid {
                         input_message
                     } else {
-                        // add tag
-                        if let Some(tags) = &tags {
-                            tag(&mut input_message, tags);
-                        }
+                        // add tags
+                        tag(&mut input_message, tags);
                         input_message
                     }
                 }
@@ -63,10 +57,10 @@ fn tag<'a>(message: &mut Value, tags: &Vec<&'a str>) {
 
 #[derive(Debug)]
 pub struct Json<'a> {
-    pub skip_on_invalid_json: Option<bool>,
+    pub skip_on_invalid_json: bool,
     pub source: &'a str,
-    pub tag_on_failure: Option<Vec<&'a str>>,
-    pub target: Option<&'a str>,
+    pub tag_on_failure: Vec<&'a str>,
+    pub target: &'a str,
     pub _receiver: Option<Receiver<Value>>,
     pub _sender: Option<Sender<Value>>,
 }
@@ -74,10 +68,10 @@ pub struct Json<'a> {
 impl<'a> Json<'a> {
     pub fn new(source: &'a str) -> Self {
         Self {
-            skip_on_invalid_json: Some(false),
+            skip_on_invalid_json: false,
             source,
-            tag_on_failure: Some(vec!["_jsonparsefailure"]),
-            target: None,
+            tag_on_failure: vec!["_jsonparsefailure"],
+            target: "message",
             _receiver: None,
             _sender: None,
         }
