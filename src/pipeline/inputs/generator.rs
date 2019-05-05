@@ -1,7 +1,6 @@
 #![allow(unused)]
 
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-generator.html
-use crate::inputs::CommonOptions;
 use futures::{sync::mpsc::Sender, Async, Poll, Stream};
 use serde_json::{json, value::Value};
 use std::thread::sleep;
@@ -27,7 +26,6 @@ pub struct Generator<'a> {
     lines: Option<Vec<&'a str>>,
     message: Option<&'a str>,
     threads: Option<u32>,
-    _common: CommonOptions<'a>,
     pub _sender: Option<Sender<Value>>,
 }
 
@@ -46,7 +44,6 @@ impl<'a> Default for Generator<'a> {
             lines: None,
             message: Some("Hello world!"),
             threads: Some(1),
-            _common: CommonOptions::default(),
             _sender: None,
         }
     }
