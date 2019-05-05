@@ -12,5 +12,5 @@ Emmett is written in [Rust](https://www.rust-lang.org/) and uses [Tokio](https:/
 - Blazing fast
 - Very small resource requirements (currently needs less than 5 MB RAM for simple pipelines)
 - No garbage collector == better and more consistent performance
-- Completely asynchronous - plugins operate independantly of one another
+- Completely asynchronous - plugins operate independently of one another
 - No need to install Java
