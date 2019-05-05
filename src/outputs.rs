@@ -13,7 +13,6 @@ pub enum Output {
 
 impl OutputBlock {
     pub fn run(mut self) {
-
         // use crossbeam_channel to account for spmc instead of mpsc
         let (s, r) = unbounded();
 
@@ -25,7 +24,9 @@ impl OutputBlock {
         });
 
         // run each output plugin
-        for output in self.0 { tokio::spawn(output); }
+        for output in self.0 {
+            tokio::spawn(output);
+        }
 
         // for every message sent to the `output` block, send to each output separately
         let broadcast = self.1.for_each(move |message| {
@@ -34,7 +35,6 @@ impl OutputBlock {
         });
 
         tokio::spawn(broadcast);
-
     }
 }
 
@@ -69,7 +69,6 @@ impl<'a> Default for CommonOptions<'a> {
         }
     }
 }
-
 
 mod boundary;
 mod circonus;
@@ -123,6 +122,7 @@ mod websocket;
 mod xmpp;
 mod zabbix;
 
+pub use self::http::*;
 pub use boundary::*;
 pub use circonus::*;
 pub use cloudwatch::*;
@@ -139,7 +139,6 @@ pub use gelf::*;
 pub use google_bigquery::*;
 pub use google_pubsub::*;
 pub use graphite::*;
-pub use self::http::*;
 pub use influxdb::*;
 pub use irc::*;
 pub use juggernaut::*;

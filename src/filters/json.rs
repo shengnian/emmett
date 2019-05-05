@@ -1,6 +1,6 @@
+use serde_json::{json, value::Value};
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-filters-json.html
 use std::path::Path;
-use serde_json::{json, value::Value};
 use std::thread::sleep;
 use std::time::Duration;
 
@@ -14,30 +14,22 @@ impl<'a> Stream for Json<'a> {
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-
         let source = self.source;
         let skip_invalid = self.skip_on_invalid_json;
         let target = self.target;
         let tags = &self.tag_on_failure;
-        
+
         if let Some(ref mut receiver) = &mut self._receiver {
-
             let mut process = receiver.by_ref().map(|mut input_message| {
-
-                let json_string = input_message.get(source)
-                    .unwrap()
-                    .as_str()
-                    .unwrap();
+                let json_string = input_message.get(source).unwrap().as_str().unwrap();
 
                 if let Ok(json) = serde_json::from_str(json_string) {
-
                     if let Some(t) = target {
                         input_message[t] = json;
                         input_message
                     } else {
                         json
                     }
-                    
                 } else {
                     if skip_invalid == Some(true) {
                         input_message
@@ -49,8 +41,6 @@ impl<'a> Stream for Json<'a> {
                         input_message
                     }
                 }
-                
-                    
             });
 
             if let Some(message) = try_ready!(process.poll()) {
@@ -61,12 +51,10 @@ impl<'a> Stream for Json<'a> {
             }
 
             Ok(Async::Ready(None))
-            
         } else {
             panic!("No receiver found for Json.");
         }
-        
-    }    
+    }
 }
 
 fn tag<'a>(message: &mut Value, tags: &Vec<&'a str>) {
@@ -91,7 +79,7 @@ impl<'a> Json<'a> {
             tag_on_failure: Some(vec!["_jsonparsefailure"]),
             target: None,
             _receiver: None,
-            _sender: None
+            _sender: None,
         }
     }
 }

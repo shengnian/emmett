@@ -12,7 +12,7 @@ pub enum Filter {
     Json(json::Json<'static>),
     Mutate(mutate::Mutate),
     Clone(clone::Clone),
-    Fingerprint(fingerprint::Fingerprint<'static>)
+    Fingerprint(fingerprint::Fingerprint<'static>),
 }
 
 impl FilterBlock {
@@ -59,7 +59,6 @@ impl FilterBlock {
                     acc.1 = rx;
                     acc
                 } else if (i > 0) && (i < (count - 1)) {
-                    
                     match &mut filter {
                         Filter::Clone(ref mut p) => {
                             p._receiver = Some(acc.1);
@@ -82,12 +81,10 @@ impl FilterBlock {
                             p._sender = Some(tx);
                         }
                     };
-                    
+
                     acc.1 = rx;
                     acc
-                        
                 } else {
-                    
                     match &mut filter {
                         Filter::Clone(ref mut p) => {
                             p._receiver = Some(acc.1);
@@ -110,7 +107,7 @@ impl FilterBlock {
                             p._sender = None;
                         }
                     };
-                    
+
                     channel(1_024)
                 }
             });
@@ -146,9 +143,7 @@ impl Future for Filter {
     type Error = ();
 
     fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
-
         loop {
-            
             let _poll = match self {
                 Filter::Clone(p) => p.poll(),
                 Filter::Fingerprint(p) => p.poll(),
@@ -161,7 +156,6 @@ impl Future for Filter {
             //     println!("{:#}", message);
             // };
         }
-        
     }
 }
 
@@ -210,6 +204,7 @@ mod useragent;
 mod uuid;
 mod xml;
 
+pub use self::http::*;
 pub use aggregate::*;
 pub use alter::*;
 pub use bytes::*;
@@ -229,7 +224,6 @@ pub use extractnumbers::*;
 pub use fingerprint::*;
 pub use geoip::*;
 pub use grok::*;
-pub use self::http::*;
 pub use i18n::*;
 pub use jdbc_static::*;
 pub use jdbc_streaming::*;

@@ -1,10 +1,10 @@
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-http_poller.html
 use futures::{stream::iter_ok, sync::mpsc::Sender, try_ready, Async, Poll, Stream};
-use reqwest::{Client, RedirectPolicy, Proxy, Certificate};
+use reqwest::{Certificate, Client, Proxy, RedirectPolicy};
 use serde_json::value::Value;
-use std::path::Path;
 use std::fs::File;
 use std::io::Read;
+use std::path::Path;
 use std::time::Duration;
 use tokio::timer::Interval;
 
@@ -13,7 +13,6 @@ impl<'a> Stream for HttpPoller<'a> {
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-
         let mut client = Client::builder();
 
         // automatic_retries
@@ -21,16 +20,15 @@ impl<'a> Stream for HttpPoller<'a> {
 
         // cacert
         if let Some(cacert_path) = self.cacert {
-
             let mut buf = Vec::new();
             File::open(cacert_path)
                 .expect("Couldn't find CA file.")
                 .read_to_end(&mut buf)
                 .expect("Couldn't read CA file.");
 
-            let cert = Certificate::from_der(&buf)
-                .expect("Certificate cannot be created from file.");
-            
+            let cert =
+                Certificate::from_der(&buf).expect("Certificate cannot be created from file.");
+
             client = client.add_root_certificate(cert);
         }
 
@@ -67,7 +65,7 @@ impl<'a> Stream for HttpPoller<'a> {
         if let Some(proxy) = self.proxy.to_owned() {
             client = client.proxy(proxy);
         }
-        
+
         // request_timeout
         if let Some(timeout) = self.request_timeout {
             client = client.timeout(Duration::from_secs(timeout));
@@ -98,7 +96,6 @@ impl<'a> Stream for HttpPoller<'a> {
 
             // metadata_target
 
-            
             Ok(res)
         });
 

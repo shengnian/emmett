@@ -17,7 +17,7 @@ pub struct CsvOutput {
     gzip: Option<bool>,
     path: Option<&'static Path>,
     spreadsheet_safe: Option<bool>,
-    _common: CommonOptions<'static>
+    _common: CommonOptions<'static>,
 }
 
 impl CsvOutput {
@@ -33,7 +33,7 @@ impl CsvOutput {
             gzip: Some(false),
             path: None,
             spreadsheet_safe: Some(true),
-            _common: CommonOptions::default()
+            _common: CommonOptions::default(),
         }
     }
 }

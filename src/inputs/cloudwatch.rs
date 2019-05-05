@@ -20,7 +20,7 @@ pub struct CloudwatchInput {
     secret_access_key: Option<&'static str>,
     session_token: Option<&'static str>,
     statistics: Option<Vec<&'static str>>,
-    use_ssl: Option<bool>
+    use_ssl: Option<bool>,
 }
 
 impl Default for CloudwatchInput {
@@ -32,7 +32,13 @@ impl Default for CloudwatchInput {
             endpoint: None,
             filters: None,
             interval: Some(900),
-            metrics: Some(vec!["CPUUtilization", "DiskReadOps", "DiskWriteOps", "NetworkIn", "NetworkOut"]),
+            metrics: Some(vec![
+                "CPUUtilization",
+                "DiskReadOps",
+                "DiskWriteOps",
+                "NetworkIn",
+                "NetworkOut",
+            ]),
             namespace: Some("AWS/EC2"),
             period: Some(300),
             proxy_uri: None,
@@ -42,7 +48,7 @@ impl Default for CloudwatchInput {
             secret_access_key: None,
             session_token: None,
             statistics: Some(vec!["SampleCount", "Average", "Minimum", "Maximum", "Sum"]),
-            use_ssl: Some(true)           
+            use_ssl: Some(true),
         }
     }
 }

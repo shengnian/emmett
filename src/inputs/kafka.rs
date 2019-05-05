@@ -48,7 +48,7 @@ pub struct KafkaInput<'a> {
     ssl_truststore_type: Option<&'a str>,
     topics: Option<Vec<&'a str>>,
     topics_pattern: Option<&'a str>,
-    value_deserializer_class: Option<&'a str>
+    value_deserializer_class: Option<&'a str>,
 }
 
 impl<'a> KafkaInput<'a> {
@@ -97,7 +97,9 @@ impl<'a> KafkaInput<'a> {
             ssl_truststore_type: None,
             topics: Some(vec!["logstash"]),
             topics_pattern: None,
-            value_deserializer_class: Some("org.apache.kafka.common.serialization.StringDeserializer")
+            value_deserializer_class: Some(
+                "org.apache.kafka.common.serialization.StringDeserializer",
+            ),
         }
     }
 }

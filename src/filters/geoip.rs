@@ -16,7 +16,6 @@ impl<'a> Stream for Geoip<'a> {
         let target = self.target.unwrap();
 
         if let Some(ref mut receiver) = &mut self._receiver {
-
             let mut process = receiver.by_ref().map(|input_message| {
                 if let Some(source) = input_message.get(source) {
                     let source = source
@@ -41,9 +40,8 @@ impl<'a> Stream for Geoip<'a> {
                     try_ready!(send.poll().map_err(|_| ()));
                 }
             }
-            
-            Ok(Async::Ready(None))
 
+            Ok(Async::Ready(None))
         } else {
             panic!("No receiver found for Geoip.");
         }

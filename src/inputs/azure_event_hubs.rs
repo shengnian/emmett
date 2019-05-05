@@ -16,12 +16,12 @@ pub struct AzureEventHubsInput {
     max_batch_size: Option<u64>,
     storage_connection: Option<String>,
     storage_container: Option<String>,
-    threads: Option<u64>
+    threads: Option<u64>,
 }
 
 impl Default for AzureEventHubsInput {
     fn default() -> Self {
-        Self {            
+        Self {
             config_mode: None,
             event_hubs: None,
             event_hub_connections: None,
@@ -34,9 +34,9 @@ impl Default for AzureEventHubsInput {
             max_batch_size: None,
             storage_connection: None,
             storage_container: None,
-            threads: None
+            threads: None,
         }
-    }    
+    }
 }
 
 impl AzureEventHubsInput {

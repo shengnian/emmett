@@ -1,7 +1,6 @@
 #![allow(unused)]
 
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-file.html
-
 use std::path::Path;
 
 #[derive(Debug)]
@@ -24,7 +23,7 @@ pub struct FileInput<'a> {
     sincedb_path: Option<&'a str>,
     sincedb_write_interval: Option<&'a str>,
     start_position: Option<&'a str>,
-    start_interval: Option<&'a str>
+    start_interval: Option<&'a str>,
 }
 
 impl<'a> FileInput<'a> {
@@ -48,7 +47,7 @@ impl<'a> FileInput<'a> {
             sincedb_path: Some("<path.data>/plugins/inputs/file"),
             sincedb_write_interval: Some("15 seconds"),
             start_position: Some("end"),
-            start_interval: Some("1 second")
+            start_interval: Some("1 second"),
         }
     }
 }

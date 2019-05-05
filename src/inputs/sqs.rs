@@ -1,7 +1,6 @@
 #![allow(unused)]
 
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-sqs.html
-
 use std::path::Path;
 
 #[derive(Debug)]
@@ -20,7 +19,7 @@ pub struct SqsInput<'a> {
     secret_access_key: Option<&'a str>,
     sent_timestamp_field: Option<&'a str>,
     session_token: Option<&'a str>,
-    threads: Option<u64>
+    threads: Option<u64>,
 }
 
 impl<'a> SqsInput<'a> {
@@ -40,7 +39,7 @@ impl<'a> SqsInput<'a> {
             secret_access_key: None,
             sent_timestamp_field: None,
             session_token: None,
-            threads: Some(1)
+            threads: Some(1),
         }
     }
 }

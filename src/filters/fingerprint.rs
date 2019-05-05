@@ -1,11 +1,11 @@
 #![allow(unused)]
 
-/// Specifiction: https://www.elastic.co/guide/en/logstash/current/plugins-filters-fingerprint.html
-use serde_json::Value;
 use futures::{
     sync::mpsc::{Receiver, Sender},
     try_ready, Async, Future, Poll, Sink, Stream,
 };
+/// Specifiction: https://www.elastic.co/guide/en/logstash/current/plugins-filters-fingerprint.html
+use serde_json::Value;
 use sha1::Sha1;
 
 impl<'a> Stream for Fingerprint<'a> {
@@ -13,9 +13,7 @@ impl<'a> Stream for Fingerprint<'a> {
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-
         if let Some(ref mut receiver) = &mut self._receiver {
-
             let mut process = receiver.by_ref().map(|mut input_message| {
                 input_message["fingerprint"] = fingerprint_sha1(&input_message);
                 input_message
@@ -29,11 +27,9 @@ impl<'a> Stream for Fingerprint<'a> {
             }
 
             Ok(Async::Ready(None))
-            
         } else {
             panic!("No receiver found for Fingerprint.");
         }
-        
     }
 }
 
@@ -68,7 +64,7 @@ impl<'a> Fingerprint<'a> {
             source: Some(vec!["message"]),
             target: Some("fingerprint"),
             _receiver: None,
-            _sender: None
+            _sender: None,
         }
     }
 }

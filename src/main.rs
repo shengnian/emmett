@@ -15,7 +15,6 @@ use outputs::{Output, OutputBlock};
 pub struct ConfigParser;
 
 fn main() {
-
     // inputs
     let poller = Input::HttpPoller(inputs::HttpPoller::new(
         1000,
@@ -31,13 +30,13 @@ fn main() {
     let fingerprint = Filter::Fingerprint(filters::Fingerprint::new());
 
     let json = Filter::Json(filters::Json {
-            skip_on_invalid_json: Some(false),
-            source: "jsonString",
-            tag_on_failure: Some(vec!["_jsonparsefailure"]),
-            target: Some("jsonString"),
-            _receiver: None,
-            _sender: None
-        });
+        skip_on_invalid_json: Some(false),
+        source: "jsonString",
+        tag_on_failure: Some(vec!["_jsonparsefailure"]),
+        target: Some("jsonString"),
+        _receiver: None,
+        _sender: None,
+    });
 
     // outputs
     let stdout = Output::Stdout(outputs::Stdout::new());
@@ -58,7 +57,6 @@ fn main() {
         pipeline.run();
         Ok(())
     }));
-    
 }
 
 pub struct Pipeline(InputBlock, FilterBlock, OutputBlock);

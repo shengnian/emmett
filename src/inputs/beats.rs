@@ -19,12 +19,12 @@ pub struct BeatsInput {
     ssl_verify_mode: Option<u64>,
     ssl_peer_metadata: Option<u64>,
     tls_max_version: Option<u64>,
-    tls_min_version: Option<u64>
+    tls_min_version: Option<u64>,
 }
 
 impl Default for BeatsInput {
     fn default() -> Self {
-        Self {            
+        Self {
             add_hostname: None,
             cipher_suites: None,
             client_inactivity_timeout: None,
@@ -40,7 +40,7 @@ impl Default for BeatsInput {
             ssl_verify_mode: None,
             ssl_peer_metadata: None,
             tls_max_version: None,
-            tls_min_version: None
+            tls_min_version: None,
         }
     }
 }

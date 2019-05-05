@@ -134,6 +134,7 @@ mod websocket;
 mod wmi;
 mod xmpp;
 
+pub use self::http::*;
 pub use azure_event_hubs::*;
 pub use beats::*;
 pub use cloudwatch::*;
@@ -150,7 +151,6 @@ pub use google_cloud_storage::*;
 pub use google_pubsub::*;
 pub use graphite::*;
 pub use heartbeat::*;
-pub use self::http::*;
 pub use http_poller::*;
 pub use imap::*;
 pub use irc::*;

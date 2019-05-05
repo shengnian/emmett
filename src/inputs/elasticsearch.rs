@@ -1,9 +1,8 @@
 #![allow(unused)]
 
-/// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-elasticsearch.html
-
-use std::path::Path;
 use serde_json::{json, Value};
+/// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-elasticsearch.html
+use std::path::Path;
 
 #[derive(Debug)]
 pub struct ElasticsearchInput<'a> {
@@ -20,7 +19,7 @@ pub struct ElasticsearchInput<'a> {
     size: Option<u64>,
     slices: Option<u64>,
     ssl: Option<bool>,
-    user: Option<&'a str>
+    user: Option<&'a str>,
 }
 
 impl<'a> ElasticsearchInput<'a> {
@@ -39,7 +38,7 @@ impl<'a> ElasticsearchInput<'a> {
             size: Some(1000),
             slices: None,
             ssl: Some(false),
-            user: None
+            user: None,
         }
     }
 }
