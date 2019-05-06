@@ -14,6 +14,9 @@ use std::io::Read;
 use std::path::Path;
 use pest_derive::Parser;
 use futures::{sync::mpsc};
+use std::convert::TryFrom;
+
+use inputs::Generator;
 
 pub struct Pipeline(pub InputBlock, pub FilterBlock, pub OutputBlock);
 
@@ -26,24 +29,24 @@ impl Pipeline {
     }
 
     pub fn from_toml(path: &Path) -> Pipeline {
-
+                
         // inputs
-        let poller = Input::HttpPoller(inputs::HttpPoller::new(
-            1000,
-            vec!["https://jsonplaceholder.typicode.com/posts/1"],
-        ));
-        let generator = Input::Generator(inputs::Generator::new());
-        let exec = Input::Exec(inputs::Exec::new("ls"));
+        // let poller = Input::HttpPoller(inputs::HttpPoller::new(
+        //     1000,
+        //     vec!["https://jsonplaceholder.typicode.com/posts/1"],
+        // ));
+        // let generator = Input::Generator(inputs::Generator::new());
+        // let exec = Input::Exec(inputs::Exec::new("ls"));
 
         // filters
-        let geoip = Filter::Geoip(filters::Geoip::new("ip"));
-        let mutate = Filter::Mutate(filters::Mutate::new());
-        let clone = Filter::Clone(filters::Clone::new(Vec::new()));
-        let fingerprint = Filter::Fingerprint(filters::Fingerprint::new());
+        // let geoip = Filter::Geoip(filters::Geoip::new("ip"));
+        // let mutate = Filter::Mutate(filters::Mutate::new());
+        // let clone = Filter::Clone(filters::Clone::new(Vec::new()));
+        // let fingerprint = Filter::Fingerprint(filters::Fingerprint::new());
 
         let json = Filter::Json(filters::Json {
             skip_on_invalid_json: false,
-            source: "jsonString",
+            source: "message",
             tag_on_failure: vec!["_jsonparsefailure"],
             target: "jsonString",
             _receiver: None,
@@ -58,27 +61,40 @@ impl Pipeline {
         let (filter_sender, output_receiver) = mpsc::channel(1_024);
 
         // blocks
-        let inputs = InputBlock(vec![generator], input_sender);
-        let filters = FilterBlock(vec![json, fingerprint], filter_receiver, filter_sender);
-        let outputs = OutputBlock(vec![stdout], output_receiver);
+        let mut inputs = InputBlock(Vec::new(), input_sender);
+        let mut filters = FilterBlock(vec![json], filter_receiver, filter_sender);
+        let mut outputs = OutputBlock(vec![stdout], output_receiver);
 
-        // pipeline
-        let pipeline = Pipeline(inputs, filters, outputs);
-        
+        // read pipeline config
         let mut config_file = File::open(path)
-            .expect("Couldn't read config file.");
+            .expect("Couldn't open config file.");
 
         let mut config = String::new();
         config_file.read_to_string(&mut config)
             .expect("Couldn't read config file.");
 
-        let config: toml::Value = config.parse()
-            .expect("Couldn't parse config TOML");
+        let toml: toml::Value = config.parse()
+            .expect("Couldn't parse config TOML.");
 
-        dbg!(config);
+        if let Some(input_block) = toml.get("inputs") {
+            if let Some(input_block) = input_block.as_array() {
+                input_block.iter().for_each(|x| {
+                    if let Some(generator) = x.get("generator") {
+                        let plugin = Generator::try_from(generator.to_owned()).unwrap();
+                        let generator = Input::Generator(plugin);
+                        inputs.0.push(generator);
+                    };
+                });
+            }
+            
+        }
+
+        // pipeline
+        let pipeline = Pipeline(inputs, filters, outputs);
 
         pipeline
         
     }
     
 }
+

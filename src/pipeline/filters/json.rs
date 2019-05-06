@@ -21,7 +21,10 @@ impl<'a> Stream for Json<'a> {
 
         if let Some(ref mut receiver) = &mut self._receiver {
             let mut process = receiver.by_ref().map(|mut input_message| {
-                let json_string = input_message.get(source).unwrap().as_str().unwrap();
+                let json_string = input_message.get(source)
+                    .unwrap()
+                    .as_str()
+                    .unwrap();
 
                 if let Ok(json) = serde_json::from_str(json_string) {
                         input_message[target] = json;

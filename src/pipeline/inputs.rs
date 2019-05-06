@@ -5,31 +5,12 @@ use futures::{try_ready, Future, Poll, Sink, Stream};
 use serde_json::Value;
 use std::collections::HashMap;
 
-pub struct InputBlock(pub Vec<Input>, pub Sender<Value>);
-
 #[derive(Debug)]
 pub enum Input {
     Exec(Exec<'static>),
-    Generator(Generator<'static>),
+    Generator(Generator),
     HttpPoller(HttpPoller<'static>),
     S3(S3<'static>),
-}
-
-impl InputBlock {
-    pub fn run(self) {
-        let (inputs, sender) = (self.0, self.1);
-
-        inputs.into_iter().for_each(|mut input| {
-            match &mut input {
-                Input::Exec(ref mut p) => p._sender = Some(sender.clone()),
-                Input::HttpPoller(ref mut p) => p._sender = Some(sender.clone()),
-                Input::S3(ref mut p) => p._sender = Some(sender.clone()),
-                Input::Generator(ref mut p) => p._sender = Some(sender.clone()),
-            }
-
-            tokio::spawn(input);
-        });
-    }
 }
 
 impl Future for Input {
@@ -56,6 +37,25 @@ impl Future for Input {
                 }
             }
         }
+    }
+}
+
+pub struct InputBlock(pub Vec<Input>, pub Sender<Value>);
+
+impl InputBlock {
+    pub fn run(self) {
+        let (inputs, sender) = (self.0, self.1);
+
+        inputs.into_iter().for_each(|mut input| {
+            match &mut input {
+                Input::Exec(ref mut p) => p._sender = Some(sender.clone()),
+                Input::HttpPoller(ref mut p) => p._sender = Some(sender.clone()),
+                Input::S3(ref mut p) => p._sender = Some(sender.clone()),
+                Input::Generator(ref mut p) => p._sender = Some(sender.clone()),
+            }
+
+            tokio::spawn(input);
+        });
     }
 }
 

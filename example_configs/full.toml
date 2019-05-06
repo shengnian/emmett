@@ -1,15 +1,31 @@
 # This is an emmett config file.
 
-[input.stdin]
+[[inputs]]
 
-[filter.grok]
+[inputs.generator]
+count = 3
+lines =  ["line 1", "line 2", "line 3"]
+message = "Hello world!"
+threads = 1
+
+[inputs.http_poller]
+count = 3
+urls =  { test1 = "https://jsonplaceholder.typicode.com/posts/1", test2 = { method = "get", user = "AzureDiamond" } }
+message = "Hello world!"
+threads = 1
+
+[[filters]]
+
+[filters.grok]
 match = { message = "%{COMBINEDAPACHELOG}" }
     
-[filter.date]
+[filters.date]
 match = [ "timestamp" , "dd/MMM/yyyy:HH:mm:ss Z" ]	
 
-[output.stdout]
+[[outputs]]
+
+[outputs.stdout]
 codec = "rubydebug"
 
-[output.elasticsearch]
+[outputs.elasticsearch]
 hosts = ["localhost:9200"]
