@@ -21,6 +21,7 @@ impl<'a> Stream for Json<'a> {
 
         if let Some(ref mut receiver) = &mut self._receiver {
             let mut process = receiver.by_ref().map(|mut input_message| {
+
                 let json_string = input_message.get(source)
                     .unwrap()
                     .as_str()
@@ -38,6 +39,7 @@ impl<'a> Stream for Json<'a> {
                         input_message
                     }
                 }
+                
             });
 
             if let Some(message) = try_ready!(process.poll()) {

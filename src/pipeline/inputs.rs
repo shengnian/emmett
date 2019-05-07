@@ -9,7 +9,7 @@ use std::collections::HashMap;
 pub enum Input {
     Exec(Exec<'static>),
     Generator(Generator),
-    HttpPoller(HttpPoller<'static>),
+    HttpPoller(HttpPoller),
     S3(S3<'static>),
 }
 

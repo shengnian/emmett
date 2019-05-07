@@ -17,6 +17,7 @@ use futures::{sync::mpsc};
 use std::convert::TryFrom;
 
 use inputs::Generator;
+use inputs::HttpPoller;
 
 pub struct Pipeline(pub InputBlock, pub FilterBlock, pub OutputBlock);
 
@@ -40,7 +41,7 @@ impl Pipeline {
 
         // filters
         // let geoip = Filter::Geoip(filters::Geoip::new("ip"));
-        // let mutate = Filter::Mutate(filters::Mutate::new());
+        let mutate = Filter::Mutate(filters::Mutate::new());
         // let clone = Filter::Clone(filters::Clone::new(Vec::new()));
         // let fingerprint = Filter::Fingerprint(filters::Fingerprint::new());
 
@@ -61,8 +62,8 @@ impl Pipeline {
         let (filter_sender, output_receiver) = mpsc::channel(1_024);
 
         // blocks
-        let mut inputs = InputBlock(Vec::new(), input_sender);
-        let mut filters = FilterBlock(vec![json], filter_receiver, filter_sender);
+        let mut inputs = InputBlock(vec![], input_sender);
+        let mut filters = FilterBlock(vec![mutate], filter_receiver, filter_sender);
         let mut outputs = OutputBlock(vec![stdout], output_receiver);
 
         // read pipeline config
@@ -83,6 +84,11 @@ impl Pipeline {
                         let plugin = Generator::try_from(generator.to_owned()).unwrap();
                         let generator = Input::Generator(plugin);
                         inputs.0.push(generator);
+                    };
+                    if let Some(poller) = x.get("http_poller") {
+                        let plugin = HttpPoller::try_from(poller.to_owned()).unwrap();
+                        let poller = Input::HttpPoller(plugin);
+                        inputs.0.push(poller);
                     };
                 });
             }
