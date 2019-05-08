@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 #[derive(Parser)]
 #[grammar = "logstash.pest"]
 pub struct ConfigParser;
@@ -24,9 +26,9 @@ pub struct Pipeline(pub InputBlock, pub FilterBlock, pub OutputBlock);
 impl Pipeline {
 
     pub fn run(self) {
-        self.0.run();
-        self.1.run();
-        self.2.run();
+        let filter_receiver = self.0.run();
+        let outputs_receiver = self.1.run(filter_receiver);
+        self.2.run(outputs_receiver);
     }
 
     pub fn from_toml(path: &Path) -> Pipeline {
@@ -57,14 +59,10 @@ impl Pipeline {
         // outputs
         let stdout = Output::Stdout(outputs::Stdout::new());
 
-        // communication channels
-        let (inputs_sender, filter_receiver) = mpsc::channel(1_024);
-        let (filter_sender, outputs_receiver) = mpsc::channel(1_024);
-
         // blocks
-        let mut inputs = InputBlock(vec![], inputs_sender);
-        let mut filters = FilterBlock(vec![mutate], filter_receiver, filter_sender);
-        let mut outputs = OutputBlock(vec![stdout], outputs_receiver);
+        let mut inputs = InputBlock(vec![]);
+        let mut filters = FilterBlock(vec![mutate]);
+        let mut outputs = OutputBlock(vec![stdout]);
 
         // read pipeline config
         let mut config_file = File::open(path)

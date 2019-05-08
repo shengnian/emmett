@@ -24,13 +24,13 @@ truststore_password = "mypassword"
 [[inputs.http_poller.urls]]
 test1 = "https://jsonplaceholder.typicode.com/posts/1"
 
-[[inputs.http_poller.urls]]
-[inputs.http_poller.urls.test2]
-method = "get"
-user = "AzureDiamond"
-password = "hunter2"
-url = "https://jsonplaceholder.typicode.com/posts/2"
-headers = { Accept = "application/json" }
+# [[inputs.http_poller.urls]]
+# [inputs.http_poller.urls.test2]
+# method = "get"
+# user = "AzureDiamond"
+# password = "hunter2"
+# url = "https://jsonplaceholder.typicode.com/posts/2"
+# headers = { Accept = "application/json" }
 
 [[filters]]
 

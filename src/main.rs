@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 use futures::future::lazy;
 use std::path::Path;
 

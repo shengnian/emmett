@@ -4,7 +4,7 @@ use futures::{
 };
 use serde_json::Value;
 
-pub struct FilterBlock(pub Vec<Filter>, pub Receiver<Value>, pub Sender<Value>);
+pub struct FilterBlock(pub Vec<Filter>);
 
 #[derive(Debug)]
 pub enum Filter {
@@ -16,8 +16,11 @@ pub enum Filter {
 }
 
 impl FilterBlock {
-    pub fn run(self) {
-        let (mut filters, receiver, sender) = (self.0, self.1, self.2);
+    pub fn run(self, filter_receiver: Receiver<Value>) -> Receiver<Value> {
+        let mut filters = self.0;
+        
+        let (filter_sender, outputs_receiver) = channel(1_024);
+        
         let count = filters.len();
 
         // if there are no filters, connect the filter_receiver to the filter_sender
@@ -114,27 +117,30 @@ impl FilterBlock {
 
         if let Some(filter) = filters.get_mut(0) {
             match filter {
-                Filter::Clone(ref mut p) => p._receiver = Some(receiver),
-                Filter::Fingerprint(ref mut p) => p._receiver = Some(receiver),
-                Filter::Geoip(ref mut p) => p._receiver = Some(receiver),
-                Filter::Json(ref mut p) => p._receiver = Some(receiver),
-                Filter::Mutate(ref mut p) => p._receiver = Some(receiver),
+                Filter::Clone(ref mut p) => p._receiver = Some(filter_receiver),
+                Filter::Fingerprint(ref mut p) => p._receiver = Some(filter_receiver),
+                Filter::Geoip(ref mut p) => p._receiver = Some(filter_receiver),
+                Filter::Json(ref mut p) => p._receiver = Some(filter_receiver),
+                Filter::Mutate(ref mut p) => p._receiver = Some(filter_receiver),
             };
         }
 
         if let Some(filter) = filters.iter_mut().last() {
             match filter {
-                Filter::Clone(ref mut p) => p._sender = Some(sender),
-                Filter::Fingerprint(ref mut p) => p._sender = Some(sender),
-                Filter::Geoip(ref mut p) => p._sender = Some(sender),
-                Filter::Json(ref mut p) => p._sender = Some(sender),
-                Filter::Mutate(ref mut p) => p._sender = Some(sender),
+                Filter::Clone(ref mut p) => p._sender = Some(filter_sender),
+                Filter::Fingerprint(ref mut p) => p._sender = Some(filter_sender),
+                Filter::Geoip(ref mut p) => p._sender = Some(filter_sender),
+                Filter::Json(ref mut p) => p._sender = Some(filter_sender),
+                Filter::Mutate(ref mut p) => p._sender = Some(filter_sender),
             };
         }
 
         for filter in filters {
             tokio::spawn(filter);
         }
+
+        outputs_receiver
+        
     }
 }
 

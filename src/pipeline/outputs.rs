@@ -4,7 +4,7 @@ use crossbeam_channel::unbounded;
 use futures::{sync::mpsc::Receiver, Future, Poll, Stream};
 use serde_json::Value;
 
-pub struct OutputBlock(pub Vec<Output>, pub Receiver<Value>);
+pub struct OutputBlock(pub Vec<Output>);
 
 #[derive(Debug)]
 pub enum Output {
@@ -12,7 +12,7 @@ pub enum Output {
 }
 
 impl OutputBlock {
-    pub fn run(mut self) {
+    pub fn run(mut self, outputs_receiver: Receiver<Value>) {
         // use crossbeam_channel to account for spmc instead of mpsc
         let (s, r) = unbounded();
 
@@ -29,7 +29,7 @@ impl OutputBlock {
         }
 
         // for every message sent to the `output` block, send to each output separately
-        let broadcast = self.1.for_each(move |message| {
+        let broadcast = outputs_receiver.for_each(move |message| {
             s.send(message).unwrap();
             Ok(())
         });
