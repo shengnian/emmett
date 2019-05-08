@@ -164,7 +164,7 @@ impl Default for HttpPoller {
             proxy: None,
             request_timeout: Some(60),
             retry_non_idempotent: Some(false),
-            schedule: Interval::new_interval(Duration::from_secs(5)),
+            schedule: Interval::new_interval(Duration::from_millis(500)),
             socket_timeout: Some(10),
             target: None,
             truststore: None,

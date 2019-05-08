@@ -7,10 +7,10 @@ use std::collections::HashMap;
 
 #[derive(Debug)]
 pub enum Input {
-    Exec(Exec<'static>),
-    Generator(Generator),
-    HttpPoller(HttpPoller),
-    S3(S3<'static>),
+    Exec(Exec, Option<Sender<Value>>),
+    Generator(Generator, Option<Sender<Value>>),
+    HttpPoller(HttpPoller, Option<Sender<Value>>),
+    S3(S3, Option<Sender<Value>>),
 }
 
 impl Future for Input {
@@ -20,18 +20,18 @@ impl Future for Input {
     fn poll(&mut self) -> Poll<(), Self::Error> {
         loop {
             let poll = match self {
-                Input::Exec(p) => p.poll(),
-                Input::HttpPoller(p) => p.poll(),
-                Input::S3(p) => p.poll(),
-                Input::Generator(p) => p.poll(),
+                Input::Exec(p, _) => p.poll(),
+                Input::HttpPoller(p, _) => p.poll(),
+                Input::S3(p, _) => p.poll(),
+                Input::Generator(p, _) => p.poll(),
             };
 
             if let Some(message) = try_ready!(poll) {
                 if let Some(sender) = match self {
-                    Input::Exec(p) => p._sender.to_owned(),
-                    Input::HttpPoller(p) => p._sender.to_owned(),
-                    Input::S3(p) => p._sender.to_owned(),
-                    Input::Generator(p) => p._sender.to_owned(),
+                    Input::Exec(_, s) => s,
+                    Input::HttpPoller(_, s) => s,
+                    Input::S3(_, s) => s,
+                    Input::Generator(_, s) => s,
                 } {
                     try_ready!(sender.send(message).poll().map_err(|_| ()));
                 }
@@ -44,36 +44,38 @@ pub struct InputBlock(pub Vec<Input>, pub Sender<Value>);
 
 impl InputBlock {
     pub fn run(self) {
+
         let (inputs, sender) = (self.0, self.1);
 
         inputs.into_iter().for_each(|mut input| {
-            match &mut input {
-                Input::Exec(ref mut p) => p._sender = Some(sender.clone()),
-                Input::HttpPoller(ref mut p) => p._sender = Some(sender.clone()),
-                Input::S3(ref mut p) => p._sender = Some(sender.clone()),
-                Input::Generator(ref mut p) => p._sender = Some(sender.clone()),
+            match input {
+                Input::Exec(_, ref mut s) => *s = Some(sender.clone()),
+                Input::HttpPoller(_, ref mut s) => *s = Some(sender.clone()),
+                Input::S3(_, ref mut s) => *s = Some(sender.clone()),
+                Input::Generator(_, ref mut s) => *s = Some(sender.clone()),
             }
 
             tokio::spawn(input);
+
         });
     }
 }
 
 #[derive(Debug)]
-pub struct CommonOptions<'a> {
-    add_field: Option<HashMap<&'a str, &'a str>>,
-    codec: Option<&'a str>,
+pub struct CommonOptions {
+    add_field: Option<HashMap<String, String>>,
+    codec: Option<String>,
     enable_metric: Option<bool>,
-    id: Option<&'a str>,
-    tags: Option<Vec<&'a str>>,
-    r#type: Option<&'a str>,
+    id: Option<String>,
+    tags: Option<Vec<String>>,
+    r#type: Option<String>,
 }
 
-impl<'a> Default for CommonOptions<'a> {
+impl Default for CommonOptions {
     fn default() -> Self {
         Self {
             add_field: None,
-            codec: Some("plain"),
+            codec: Some("plain".to_string()),
             enable_metric: Some(true),
             id: None,
             tags: None,

@@ -58,13 +58,13 @@ impl Pipeline {
         let stdout = Output::Stdout(outputs::Stdout::new());
 
         // communication channels
-        let (input_sender, filter_receiver) = mpsc::channel(1_024);
-        let (filter_sender, output_receiver) = mpsc::channel(1_024);
+        let (inputs_sender, filter_receiver) = mpsc::channel(1_024);
+        let (filter_sender, outputs_receiver) = mpsc::channel(1_024);
 
         // blocks
-        let mut inputs = InputBlock(vec![], input_sender);
+        let mut inputs = InputBlock(vec![], inputs_sender);
         let mut filters = FilterBlock(vec![mutate], filter_receiver, filter_sender);
-        let mut outputs = OutputBlock(vec![stdout], output_receiver);
+        let mut outputs = OutputBlock(vec![stdout], outputs_receiver);
 
         // read pipeline config
         let mut config_file = File::open(path)
@@ -82,12 +82,12 @@ impl Pipeline {
                 input_block.iter().for_each(|x| {
                     if let Some(generator) = x.get("generator") {
                         let plugin = Generator::try_from(generator.to_owned()).unwrap();
-                        let generator = Input::Generator(plugin);
+                        let generator = Input::Generator(plugin, None);
                         inputs.0.push(generator);
                     };
                     if let Some(poller) = x.get("http_poller") {
                         let plugin = HttpPoller::try_from(poller.to_owned()).unwrap();
-                        let poller = Input::HttpPoller(plugin);
+                        let poller = Input::HttpPoller(plugin, None);
                         inputs.0.push(poller);
                     };
                 });

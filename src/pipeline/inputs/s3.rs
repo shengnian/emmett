@@ -10,7 +10,7 @@ use rusoto_core::{request::HttpClient, Region};
 use rusoto_credential::StaticProvider;
 use rusoto_s3::S3Client;
 
-impl<'a> Stream for S3<'a> {
+impl Stream for S3 {
     type Item = Value;
     type Error = ();
 
@@ -27,34 +27,34 @@ impl<'a> Stream for S3<'a> {
 }
 
 #[derive(Debug)]
-pub struct S3<'a> {
-    access_key_id: Option<&'a str>,
-    additional_settings: Option<HashMap<&'a str, &'a str>>,
-    aws_credentials_file: Option<&'a Path>,
-    backup_add_prefix: Option<&'a str>,
-    backup_to_bucket: Option<&'a str>,
-    backup_to_dir: Option<&'a Path>,
-    bucket: &'a str,
+pub struct S3 {
+    access_key_id: Option<String>,
+    additional_settings: Option<HashMap<String, String>>,
+    aws_credentials_file: Option<&'static Path>,
+    backup_add_prefix: Option<String>,
+    backup_to_bucket: Option<String>,
+    backup_to_dir: Option<&'static Path>,
+    bucket: String,
     delete: Option<bool>,
-    endpoint: Option<&'a str>,
-    exclude_pattern: Option<&'a str>,
+    endpoint: Option<String>,
+    exclude_pattern: Option<String>,
     include_object_properties: Option<bool>,
     interval: Option<u64>,
-    prefix: Option<&'a str>,
-    proxy_uri: Option<&'a str>,
-    region: Option<&'a str>,
-    role_arn: Option<&'a str>,
-    role_session_name: Option<&'a str>,
-    secret_access_key: Option<&'a str>,
-    session_token: Option<&'a str>,
-    sincedb_path: Option<&'a Path>,
-    temporary_directory: Option<&'a Path>,
+    prefix: Option<String>,
+    proxy_uri: Option<String>,
+    region: Option<String>,
+    role_arn: Option<String>,
+    role_session_name: Option<String>,
+    secret_access_key: Option<String>,
+    session_token: Option<String>,
+    sincedb_path: Option<&'static Path>,
+    temporary_directory: Option<&'static Path>,
     watch_for_new_files: Option<bool>,
     pub _sender: Option<Sender<Value>>,
 }
 
-impl<'a> S3<'a> {
-    pub fn new(bucket: &'a str) -> Self {
+impl S3 {
+    pub fn new(bucket: String) -> Self {
         Self {
             access_key_id: None,
             additional_settings: None,
@@ -70,9 +70,9 @@ impl<'a> S3<'a> {
             interval: Some(60),
             prefix: None,
             proxy_uri: None,
-            region: Some("us-east-1"),
+            region: Some("us-east-1".to_string()),
             role_arn: None,
-            role_session_name: Some("logstash"),
+            role_session_name: Some("logstash".to_string()),
             secret_access_key: None,
             session_token: None,
             sincedb_path: None,

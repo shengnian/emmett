@@ -8,7 +8,7 @@ use std::time::Duration;
 use tokio::timer::Interval;
 use tokio_process::CommandExt;
 
-impl<'a> Stream for Exec<'a> {
+impl Stream for Exec {
     type Item = Value;
     type Error = ();
 
@@ -17,7 +17,7 @@ impl<'a> Stream for Exec<'a> {
         std::thread::sleep(Duration::from_millis(1000));
         // try_ready!(self.interval.poll().map_err(|_| ()));
 
-        let mut message = Command::new(self.command)
+        let mut message = Command::new(&self.command)
             .output()
             .expect("Couldn't get Exec command output.");
 
@@ -34,26 +34,26 @@ impl<'a> Stream for Exec<'a> {
 }
 
 #[derive(Debug)]
-pub struct Exec<'a> {
-    command: &'a str,
+pub struct Exec {
+    command: String,
     interval: Interval,
-    schedule: Option<&'a str>,
+    schedule: Option<String>,
     pub _sender: Option<Sender<Value>>,
 }
 
-impl<'a> Default for Exec<'a> {
+impl Default for Exec {
     fn default() -> Self {
         Self {
-            command: "",
+            command: "".to_string(),
             interval: Interval::new_interval(Duration::from_secs(5)),
-            schedule: Some("test"),
+            schedule: Some("test".to_string()),
             _sender: None,
         }
     }
 }
 
-impl<'a> Exec<'a> {
-    pub fn new(command: &'a str) -> Self {
+impl Exec {
+    pub fn new(command: String) -> Self {
         Self {
             command,
             ..Default::default()
