@@ -77,17 +77,8 @@ impl Pipeline {
 
         if let Some(input_block) = toml.get("inputs") {
             if let Some(input_block) = input_block.as_array() {
-                input_block.iter().for_each(|x| {
-                    if let Some(generator) = x.get("generator") {
-                        let plugin = Generator::try_from(generator.to_owned()).unwrap();
-                        let generator = Input::Generator(plugin, None);
-                        inputs.0.push(generator);
-                    };
-                    if let Some(poller) = x.get("http_poller") {
-                        let plugin = HttpPoller::try_from(poller.to_owned()).unwrap();
-                        let poller = Input::HttpPoller(plugin, None);
-                        inputs.0.push(poller);
-                    };
+                input_block.into_iter().for_each(|input| {
+                    inputs.0.push(input.to_plugin());
                 });
             }
             
@@ -102,3 +93,22 @@ impl Pipeline {
     
 }
 
+trait Plugin {
+    fn to_plugin(&self) -> Input;
+}
+
+impl Plugin for toml::Value {
+    fn to_plugin(&self) -> Input {
+        if let Some(generator) = self.get("generator") {
+            let plugin = Generator::try_from(generator.to_owned()).unwrap();
+            let generator = Input::Generator(plugin, None);
+            return generator
+        };
+        if let Some(poller) = self.get("http_poller") {
+            let plugin = HttpPoller::try_from(poller.to_owned()).unwrap();
+            let poller = Input::HttpPoller(plugin, None);
+            return poller
+        };
+        panic!("Bad config.");
+    }
+}

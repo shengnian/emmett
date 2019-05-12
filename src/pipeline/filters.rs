@@ -21,7 +21,7 @@ impl FilterBlock {
         
         let (filter_sender, outputs_receiver) = channel(1_024);
         
-        let count = filters.len();
+        let last = filters.len() -1;
 
         // if there are no filters, connect the filter_receiver to the filter_sender
 
@@ -61,7 +61,7 @@ impl FilterBlock {
                     };
                     acc.1 = rx;
                     acc
-                } else if (i > 0) && (i < (count - 1)) {
+                } else if (i > 0) && (i < last) {
                     match &mut filter {
                         Filter::Clone(ref mut p) => {
                             p._receiver = Some(acc.1);

@@ -15,6 +15,7 @@ impl Stream for Mutate {
                 // replace(&mut input_message, "ip", json!("yo dawg"));
                 strip(&mut input_message, vec!["message"]);
                 split(&mut input_message, "body", "\n");
+                copy(&mut input_message, "userId", "userIdCopy");
                 input_message
             });
 
@@ -33,9 +34,11 @@ impl Stream for Mutate {
 }
 
 /// https://www.elastic.co/guide/en/logstash/current/plugins-filters-mutate.html#plugins-filters-mutate-copy
-// fn copy(message: &mut Value, src: &str, dest: &str) {
-
-// }
+fn copy(message: &mut Value, src: &str, dest: &str) {
+    if let Some(val) = message.get(src) {
+        message[dest] = val.clone();
+    }
+}
 
 /// https://www.elastic.co/guide/en/logstash/current/plugins-filters-mutate.html#plugins-filters-mutate-gsub
 // fn gbsub(message: &mut Value, regex: &str) {
