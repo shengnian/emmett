@@ -4,6 +4,7 @@ use futures::{
     try_ready, Async, Future, Poll, Sink, Stream,
 };
 use serde_json::{json, value::Value};
+use std::convert::TryFrom;
 
 impl Stream for Mutate {
     type Item = Value;
@@ -33,19 +34,16 @@ impl Stream for Mutate {
     }
 }
 
-/// https://www.elastic.co/guide/en/logstash/current/plugins-filters-mutate.html#plugins-filters-mutate-copy
 fn copy(message: &mut Value, src: &str, dest: &str) {
     if let Some(val) = message.get(src) {
         message[dest] = val.clone();
     }
 }
 
-/// https://www.elastic.co/guide/en/logstash/current/plugins-filters-mutate.html#plugins-filters-mutate-gsub
 // fn gbsub(message: &mut Value, regex: &str) {
 
 // }
 
-/// https://www.elastic.co/guide/en/logstash/current/plugins-filters-mutate.html#plugins-filters-mutate-join
 // fn join(message: &mut Value, field: &str, seperator: &str) {
 //     if let Some(val) = message.get_mut(field) {
 //         if val.is_array() {
@@ -56,7 +54,6 @@ fn copy(message: &mut Value, src: &str, dest: &str) {
 //     }
 // }
 
-/// https://www.elastic.co/guide/en/logstash/current/plugins-filters-mutate.html#plugins-filters-mutate-replace
 fn lowercase(message: &mut Value, fields: Vec<&str>) {
     for field in fields {
         if let Some(val) = message.get_mut(field) {
@@ -71,7 +68,6 @@ fn lowercase(message: &mut Value, fields: Vec<&str>) {
     }
 }
 
-/// https://www.elastic.co/guide/en/logstash/current/plugins-filters-mutate.html#plugins-filters-mutate-coerce
 fn coerce(message: &mut Value, field: &str, new_val: Value) {
     if let Some(val) = message.get_mut(field) {
         if val.is_null() {
@@ -87,14 +83,12 @@ fn coerce(message: &mut Value, field: &str, new_val: Value) {
 //     };
 // }
 
-/// https://www.elastic.co/guide/en/logstash/current/plugins-filters-mutate.html#plugins-filters-mutate-replace
 fn replace(message: &mut Value, field: &str, new_val: Value) {
     if let Some(val) = message.get_mut(field) {
         *val = new_val;
     }
 }
 
-/// https://www.elastic.co/guide/en/logstash/current/plugins-filters-mutate.html#plugins-filters-mutate-split
 fn split(message: &mut Value, field: &str, separator: &str) {
     if let Some(val) = message.get_mut(field) {
         if let Some(str_val) = val.as_str() {
@@ -107,7 +101,6 @@ fn split(message: &mut Value, field: &str, separator: &str) {
     }
 }
 
-/// https://www.elastic.co/guide/en/logstash/current/plugins-filters-mutate.html#plugins-filters-mutate-strip
 fn strip(message: &mut Value, fields: Vec<&str>) {
     for field in fields {
         if let Some(val) = message.get_mut(field) {
@@ -119,7 +112,6 @@ fn strip(message: &mut Value, fields: Vec<&str>) {
     }
 }
 
-/// https://www.elastic.co/guide/en/logstash/current/plugins-filters-mutate.html#plugins-filters-mutate-update
 fn update(message: &mut Value, field: &str, new_val: &str) {
     if let Some(val) = message.get_mut(field) {
         // what about non-string values?
@@ -127,7 +119,6 @@ fn update(message: &mut Value, field: &str, new_val: &str) {
     }
 }
 
-/// https://www.elastic.co/guide/en/logstash/current/plugins-filters-mutate.html#plugins-filters-mutate-uppercase
 fn uppercase(message: &mut Value, fields: Vec<&str>) {
     for field in fields {
         if let Some(val) = message.get_mut(field) {
@@ -139,7 +130,6 @@ fn uppercase(message: &mut Value, fields: Vec<&str>) {
     }
 }
 
-/// https://www.elastic.co/guide/en/logstash/current/plugins-filters-mutate.html#plugins-filters-mutate-capitalize
 // fn capitalize(message: &mut Value, fields: Vec<&str>) {
 //     for field in fields {
 //         if let Some(val) = message.get_mut(field) {
@@ -155,19 +145,31 @@ pub struct Mutate {
     pub _sender: Option<Sender<Value>>,
 }
 
-impl Mutate {
-    pub fn new() -> Self {
-        Self {
-            ..Default::default()
-        }
-    }
-}
-
 impl Default for Mutate {
     fn default() -> Self {
         Self {
             _receiver: None,
             _sender: None,
         }
+    }
+}
+
+impl TryFrom<toml::Value> for Mutate {
+    type Error = ();
+    
+    fn try_from(toml: toml::Value) -> Result<Self, Self::Error> {
+
+        let mut mutate = Mutate {
+            ..Default::default()
+        };
+        
+        // if let Some(count) = toml.get("count") {
+        //     let count = count.as_integer()
+        //         .expect("Couldn't parse Generator count field as integer.");
+        //     generator.count = count as u64;
+        // }
+            
+        Ok(mutate)
+        
     }
 }

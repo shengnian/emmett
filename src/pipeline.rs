@@ -43,7 +43,7 @@ impl Pipeline {
 
         // filters
         // let geoip = Filter::Geoip(filters::Geoip::new("ip"));
-        let mutate = Filter::Mutate(filters::Mutate::new());
+        
         // let clone = Filter::Clone(filters::Clone::new(Vec::new()));
         // let fingerprint = Filter::Fingerprint(filters::Fingerprint::new());
 
@@ -61,7 +61,7 @@ impl Pipeline {
 
         // blocks
         let mut inputs = InputBlock(vec![]);
-        let mut filters = FilterBlock(vec![mutate]);
+        let mut filters = FilterBlock(vec![]);
         let mut outputs = OutputBlock(vec![stdout]);
 
         // read pipeline config
@@ -78,10 +78,17 @@ impl Pipeline {
         if let Some(input_block) = toml.get("inputs") {
             if let Some(input_block) = input_block.as_array() {
                 input_block.into_iter().for_each(|input| {
-                    inputs.0.push(input.to_plugin());
+                    inputs.0.push(input.to_input());
                 });
             }
-            
+        }
+
+        if let Some(filter_block) = toml.get("filters") {
+            if let Some(filter_block) = filter_block.as_array() {
+                filter_block.into_iter().for_each(|filter| {
+                    filters.0.push(filter.to_filter());
+                });
+            }
         }
 
         // pipeline
@@ -93,12 +100,12 @@ impl Pipeline {
     
 }
 
-trait Plugin {
-    fn to_plugin(&self) -> Input;
+trait InputPlugin {
+    fn to_input(&self) -> Input;
 }
 
-impl Plugin for toml::Value {
-    fn to_plugin(&self) -> Input {
+impl InputPlugin for toml::Value {
+    fn to_input(&self) -> Input {
         if let Some(generator) = self.get("generator") {
             let plugin = Generator::try_from(generator.to_owned()).unwrap();
             let generator = Input::Generator(plugin, None);
@@ -108,6 +115,21 @@ impl Plugin for toml::Value {
             let plugin = HttpPoller::try_from(poller.to_owned()).unwrap();
             let poller = Input::HttpPoller(plugin, None);
             return poller
+        };
+        panic!("Bad config.");
+    }
+}
+
+trait FilterPlugin {
+    fn to_filter(&self) -> Filter;
+}
+
+impl FilterPlugin for toml::Value {
+    fn to_filter(&self) -> Filter {
+        if let Some(mutate) = self.get("mutate") {
+            let plugin = filters::Mutate::try_from(mutate.to_owned()).unwrap();
+            let mutate = Filter::Mutate(plugin);
+            return mutate
         };
         panic!("Bad config.");
     }
