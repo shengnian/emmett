@@ -4,12 +4,12 @@
 #[grammar = "logstash.pest"]
 pub struct ConfigParser;
 
-mod filters;
 mod inputs;
+mod filters;
 mod outputs;
-use filters::{Filter, FilterBlock};
-use inputs::{Input, InputBlock};
-use outputs::{Output, OutputBlock};
+use inputs::*;
+use filters::*;
+use outputs::*;
 
 use std::fs::File;
 use std::io::Read;
@@ -17,9 +17,6 @@ use std::path::Path;
 use pest_derive::Parser;
 use futures::{sync::mpsc};
 use std::convert::TryFrom;
-
-use inputs::Generator;
-use inputs::HttpPoller;
 
 pub struct Pipeline(pub InputBlock, pub FilterBlock, pub OutputBlock);
 
@@ -32,29 +29,6 @@ impl Pipeline {
     }
 
     pub fn from_toml(path: &Path) -> Pipeline {
-                
-        // inputs
-        // let poller = Input::HttpPoller(inputs::HttpPoller::new(
-        //     1000,
-        //     vec!["https://jsonplaceholder.typicode.com/posts/1"],
-        // ));
-        // let generator = Input::Generator(inputs::Generator::new());
-        // let exec = Input::Exec(inputs::Exec::new("ls"));
-
-        // filters
-        // let geoip = Filter::Geoip(filters::Geoip::new("ip"));
-        
-        // let clone = Filter::Clone(filters::Clone::new(Vec::new()));
-        // let fingerprint = Filter::Fingerprint(filters::Fingerprint::new());
-
-        let json = Filter::Json(filters::Json {
-            skip_on_invalid_json: false,
-            source: "message",
-            tag_on_failure: vec!["_jsonparsefailure"],
-            target: "jsonString",
-            _receiver: None,
-            _sender: None,
-        });
 
         // outputs
         let stdout = Output::Stdout(outputs::Stdout::new());
@@ -108,13 +82,11 @@ impl InputPlugin for toml::Value {
     fn to_input(&self) -> Input {
         if let Some(generator) = self.get("generator") {
             let plugin = Generator::try_from(generator.to_owned()).unwrap();
-            let generator = Input::Generator(plugin, None);
-            return generator
+            return Input::Generator(plugin, None)
         };
         if let Some(poller) = self.get("http_poller") {
             let plugin = HttpPoller::try_from(poller.to_owned()).unwrap();
-            let poller = Input::HttpPoller(plugin, None);
-            return poller
+            return Input::HttpPoller(plugin, None)
         };
         panic!("Bad config.");
     }
@@ -127,9 +99,8 @@ trait FilterPlugin {
 impl FilterPlugin for toml::Value {
     fn to_filter(&self) -> Filter {
         if let Some(mutate) = self.get("mutate") {
-            let plugin = filters::Mutate::try_from(mutate.to_owned()).unwrap();
-            let mutate = Filter::Mutate(plugin);
-            return mutate
+            let plugin = Mutate::try_from(mutate.to_owned()).unwrap();
+            return Filter::Mutate(plugin)
         };
         panic!("Bad config.");
     }
