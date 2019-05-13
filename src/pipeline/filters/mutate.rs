@@ -141,6 +141,20 @@ fn uppercase(message: &mut Value, fields: Vec<&str>) {
 
 #[derive(Debug)]
 pub struct Mutate {
+    convert: Option<Value>,
+    copy: Option<String>,
+    gsub: Option<String>,
+    join: Option<String>,
+    lowercase: Option<String>,
+    merge: Option<String>,
+    coerce: Option<String>,
+    rename: Option<String>,
+    replace: Option<String>,
+    split: Option<String>,
+    strip: Option<Vec<String>>,
+    update: Option<String>,
+    uppercase: Option<Vec<String>>,
+    capitalize: Option<Vec<String>>,
     pub _receiver: Option<Receiver<Value>>,
     pub _sender: Option<Sender<Value>>,
 }
@@ -148,6 +162,20 @@ pub struct Mutate {
 impl Default for Mutate {
     fn default() -> Self {
         Self {
+            convert: None,
+            copy: None,
+            gsub: None,
+            join: None,
+            lowercase: None,
+            merge: None,
+            coerce: None,
+            rename: None,
+            replace: None,
+            split: None,
+            strip: None,
+            update: None,
+            uppercase: None,
+            capitalize: None,
             _receiver: None,
             _sender: None,
         }
