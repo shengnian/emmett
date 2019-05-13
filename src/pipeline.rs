@@ -14,9 +14,10 @@ use outputs::*;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
+use std::convert::TryFrom;
+
 use pest_derive::Parser;
 use futures::{sync::mpsc};
-use std::convert::TryFrom;
 
 pub struct Pipeline(pub InputBlock, pub FilterBlock, pub OutputBlock);
 
@@ -65,10 +66,7 @@ impl Pipeline {
             }
         }
 
-        // pipeline
-        let pipeline = Pipeline(inputs, filters, outputs);
-
-        pipeline
+        Pipeline(inputs, filters, outputs)
         
     }
     
@@ -92,16 +90,26 @@ impl InputPlugin for toml::Value {
     }
 }
 
+const FILTERS: [&str; 1] = ["mutate"];
+
 trait FilterPlugin {
     fn to_filter(&self) -> Filter;
 }
 
 impl FilterPlugin for toml::Value {
     fn to_filter(&self) -> Filter {
-        if let Some(mutate) = self.get("mutate") {
-            let plugin = Mutate::try_from(mutate.to_owned()).unwrap();
-            return Filter::Mutate(plugin)
-        };
+        for filter in &FILTERS {
+            if let Some(filter) = self.get(filter) {
+                let plugin = Mutate::try_from(filter)
+                    .expect("Wrong Mutate filter config.");
+                return Filter::Mutate(plugin)
+            };
+        }
         panic!("Bad config.");
     }
 }
+
+
+// fn to_plugin(&self) -> Plugin {
+
+// }

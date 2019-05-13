@@ -182,10 +182,10 @@ impl Default for Mutate {
     }
 }
 
-impl TryFrom<toml::Value> for Mutate {
+impl TryFrom<&toml::Value> for Mutate {
     type Error = ();
     
-    fn try_from(toml: toml::Value) -> Result<Self, Self::Error> {
+    fn try_from(toml: &toml::Value) -> Result<Self, Self::Error> {
 
         let mut mutate = Mutate {
             ..Default::default()
