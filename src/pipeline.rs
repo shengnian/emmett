@@ -90,26 +90,17 @@ impl InputPlugin for toml::Value {
     }
 }
 
-const FILTERS: [&str; 1] = ["mutate"];
-
 trait FilterPlugin {
     fn to_filter(&self) -> Filter;
 }
 
 impl FilterPlugin for toml::Value {
     fn to_filter(&self) -> Filter {
-        for filter in &FILTERS {
-            if let Some(filter) = self.get(filter) {
-                let plugin = Mutate::try_from(filter)
-                    .expect("Wrong Mutate filter config.");
-                return Filter::Mutate(plugin)
-            };
-        }
+        if let Some(mutate) = self.get("mutate") {
+            let plugin = Mutate::try_from(mutate)
+                .expect("Incorrect Mutate filter config.");
+            return Filter::Mutate(plugin)
+        };
         panic!("Bad config.");
     }
 }
-
-
-// fn to_plugin(&self) -> Plugin {
-
-// }

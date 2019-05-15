@@ -12,22 +12,25 @@ impl Stream for Mutate {
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
         if let Some(ref mut receiver) = &mut self._receiver {
-            let mut process = receiver.by_ref().map(|mut input_message| {
-                // replace(&mut input_message, "ip", json!("yo dawg"));
-                strip(&mut input_message, vec!["message"]);
-                split(&mut input_message, "body", "\n");
-                copy(&mut input_message, "userId", "userIdCopy");
-                input_message
-            });
+            
+            let mut process = receiver.by_ref()
+                .map(|mut input_message| {
+                    // replace(&mut input_message, "ip", json!("yo dawg"));
+                    strip(&mut input_message, vec!["message"]);
+                    split(&mut input_message, "body", "\n");
+                    copy(&mut input_message, "userId", "userIdCopy");
+                    input_message
+                });
 
             if let Some(message) = try_ready!(process.poll()) {
-                if let Some(sender) = self._sender.to_owned() {
-                    let mut send = sender.send(message.clone());
-                    try_ready!(send.poll().map_err(|_| ()));
-                }
+                let sender = self._sender.to_owned()
+                    .expect("No sender attached to Mutate");
+                let mut send = sender.send(message);
+                try_ready!(send.poll().map_err(|_| ()));
             }
 
             Ok(Async::Ready(None))
+                
         } else {
             panic!("No receiver found for GeoipFilter.");
         }
