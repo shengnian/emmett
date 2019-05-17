@@ -2,27 +2,27 @@
 
 [[inputs]]
 
-# [inputs.generator]
-# count = 3
-# lines =  ["line 1", "line 2", "line 3"]
-# message = "Hello world!"
-# threads = 1
+[inputs.generator]
+count = 3
+lines =  ["line 1", "line 2", "line 3"]
+message = "Hello world!"
+threads = 1
 
-[inputs.exec]
-command = "ls"
-interval = 30
-schedule = "* 5 * 1-3 *"
+# [inputs.exec]
+# command = "ls"
+# interval = 30
+# schedule = "* 5 * 1-3 *"
 
-[inputs.http_poller]
-request_timeout = 60
-schedule = { cron = "* * * * * UTC" }
-codec = "json"
-metadata_target = "hhtp_poller_metadata"
-truststore = "/path/to/downloaded_truststore.jks"
-truststore_password = "mypassword"
+# [inputs.http_poller]
+# request_timeout = 60
+# schedule = { cron = "* * * * * UTC" }
+# codec = "json"
+# metadata_target = "hhtp_poller_metadata"
+# truststore = "/path/to/downloaded_truststore.jks"
+# truststore_password = "mypassword"
 
-[[inputs.http_poller.urls]]
-test1 = "https://jsonplaceholder.typicode.com/posts/1"
+# [[inputs.http_poller.urls]]
+# test1 = "https://jsonplaceholder.typicode.com/posts/1"
 
 # [[inputs.http_poller.urls]]
 # [inputs.http_poller.urls.test2]

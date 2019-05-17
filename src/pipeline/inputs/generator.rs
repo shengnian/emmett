@@ -12,7 +12,7 @@ impl Stream for Generator {
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-        sleep(Duration::from_millis(2000));
+        sleep(Duration::from_millis(200));
 
         // let message = json!({
         //     "ip": "108.55.13.247",
