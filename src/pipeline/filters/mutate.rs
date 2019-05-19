@@ -5,6 +5,7 @@ use futures::{
 };
 use serde_json::{json, value::Value};
 use std::convert::TryFrom;
+use toml::value::Table;
 
 impl Stream for Mutate {
     type Item = Value;
@@ -12,6 +13,7 @@ impl Stream for Mutate {
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
         let replace_setting = &self.replace;
+        let copy_setting = &self.copy;
         if let Some(ref mut receiver) = &mut self._receiver {
             
             let mut process = receiver.by_ref()
@@ -22,10 +24,16 @@ impl Stream for Mutate {
                             replace(&mut input_message, key, json!(value));
                         }
                     }
+
+                    if let Some(cop) = copy_setting {
+                        for (key, value) in cop.iter() {
+                            let value = value.as_str().unwrap();
+                            copy(&mut input_message, key, value);
+                        }
+                    }
                     
                     strip(&mut input_message, vec!["message"]);
                     split(&mut input_message, "body", "\n");
-                    copy(&mut input_message, "userId", "userIdCopy");
                     input_message
                 });
 
@@ -149,17 +157,19 @@ fn uppercase(message: &mut Value, fields: Vec<&str>) {
 //     }
 // }
 
+
+
 #[derive(Debug)]
 pub struct Mutate {
     convert: Option<Value>,
-    copy: Option<String>,
+    copy: Option<Table>,
     gsub: Option<String>,
     join: Option<String>,
     lowercase: Option<String>,
     merge: Option<String>,
     coerce: Option<String>,
     rename: Option<String>,
-    replace: Option<toml::value::Table>,
+    replace: Option<Table>,
     split: Option<String>,
     strip: Option<Vec<String>>,
     update: Option<String>,
@@ -203,10 +213,16 @@ impl TryFrom<&toml::Value> for Mutate {
         
         if let Some(replace) = toml.get("replace") {
             let replace = replace.as_table()
-                .expect("Couldn't parse Generator count field as integer.");
+                .expect("Couldn't parse Mutate replace as table.");
             mutate.replace = Some(replace.to_owned());
         }
-            
+
+        if let Some(copy) = toml.get("copy") {
+            let copy = copy.as_table()
+                .expect("Couldn't parse Mutate copy field as table.");
+            mutate.copy = Some(copy.to_owned());
+        }
+
         Ok(mutate)
         
     }
