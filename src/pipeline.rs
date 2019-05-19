@@ -1,9 +1,5 @@
 #![allow(unused)]
 
-#[derive(Parser)]
-#[grammar = "logstash.pest"]
-pub struct ConfigParser;
-
 mod inputs;
 mod filters;
 mod outputs;
@@ -16,7 +12,6 @@ use std::io::Read;
 use std::path::Path;
 use std::convert::TryFrom;
 
-use pest_derive::Parser;
 use futures::{sync::mpsc};
 
 pub struct Pipeline(pub InputBlock, pub FilterBlock, pub OutputBlock);
