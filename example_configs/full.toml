@@ -35,6 +35,7 @@ test1 = "https://jsonplaceholder.typicode.com/posts/1"
 [[filters]]
 
 [filters.mutate]
+replace = { "id" = "yo dawg" }
 
 [filters.grok]
 match = { message = "%{COMBINEDAPACHELOG}" }

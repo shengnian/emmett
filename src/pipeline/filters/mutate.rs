@@ -11,11 +11,18 @@ impl Stream for Mutate {
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
+        let replace_setting = &self.replace;
         if let Some(ref mut receiver) = &mut self._receiver {
             
             let mut process = receiver.by_ref()
                 .map(|mut input_message| {
-                    // replace(&mut input_message, "ip", json!("yo dawg"));
+
+                    if let Some(rep) = replace_setting {
+                        for (key, value) in rep.iter() {
+                            replace(&mut input_message, key, json!(value));
+                        }
+                    }
+                    
                     strip(&mut input_message, vec!["message"]);
                     split(&mut input_message, "body", "\n");
                     copy(&mut input_message, "userId", "userIdCopy");
@@ -152,7 +159,7 @@ pub struct Mutate {
     merge: Option<String>,
     coerce: Option<String>,
     rename: Option<String>,
-    replace: Option<String>,
+    replace: Option<toml::value::Table>,
     split: Option<String>,
     strip: Option<Vec<String>>,
     update: Option<String>,
@@ -194,11 +201,11 @@ impl TryFrom<&toml::Value> for Mutate {
             ..Default::default()
         };
         
-        // if let Some(count) = toml.get("count") {
-        //     let count = count.as_integer()
-        //         .expect("Couldn't parse Generator count field as integer.");
-        //     generator.count = count as u64;
-        // }
+        if let Some(replace) = toml.get("replace") {
+            let replace = replace.as_table()
+                .expect("Couldn't parse Generator count field as integer.");
+            mutate.replace = Some(replace.to_owned());
+        }
             
         Ok(mutate)
         
