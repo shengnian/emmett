@@ -14,17 +14,17 @@ impl Stream for Generator {
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
 
-        let message = json!({
-            "message": self.message
-        });
+        // let message = json!({
+        //     "message": self.message
+        // });
         
         let timer = self._timer.poll();
         try_ready!(timer.map_err(|_| ()));
         
-        // let message = json!({
-        //     "ip": "108.55.13.247",
-        //     "jsonString": "{\n  \"userId\": 1,\n  \"id\": 1,\n  \"title\": \"delectus aut autem\",\n  \"completed\": false\n}"
-        // });
+        let message = json!({
+            "ip": "108.55.13.247",
+            "jsonString": "{\n  \"userId\": 1,\n  \"id\": 1,\n  \"title\": \"delectus aut autem\",\n  \"completed\": false\n}"
+        });
         
         Ok(Async::Ready(Some(message)))
 
@@ -57,7 +57,7 @@ impl Default for Generator {
             message: "Hello world!".to_string(),
             threads: 1,
             _sender: None,
-            _timer: Interval::new_interval(Duration::from_millis(1000))
+            _timer: Interval::new_interval(Duration::from_millis(100))
         }
     }
 }
