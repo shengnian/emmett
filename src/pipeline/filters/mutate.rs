@@ -191,7 +191,7 @@ fn uppercase(message: &mut Value, fields: Vec<&str>) {
 
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Mutate {
     convert: Option<Value>,
     copy: Option<Table>,
@@ -207,8 +207,6 @@ pub struct Mutate {
     update: Option<String>,
     uppercase: Option<Vec<String>>,
     capitalize: Option<Vec<String>>,
-    pub _receiver: Option<Receiver<Value>>,
-    pub _sender: Option<Sender<Value>>,
 }
 
 impl Default for Mutate {
@@ -228,8 +226,6 @@ impl Default for Mutate {
             update: None,
             uppercase: None,
             capitalize: None,
-            _receiver: None,
-            _sender: None,
         }
     }
 }

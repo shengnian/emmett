@@ -1,44 +1,52 @@
 use futures::{
     sync::mpsc::{channel, Receiver, Sender},
-    Future, Poll, Sink, Stream, Async
+    Future, Poll, Sink, Stream, Async, try_ready,
+    stream
 };
 use serde_json::Value;
 
 pub struct FilterBlock(pub Vec<Filter>);
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Filter {
-    Geoip(geoip::Geoip<'static>),
-    Json(json::Json<'static>),
+    // Geoip(geoip::Geoip<'static>),
+    // Json(json::Json<'static>),
     Mutate(mutate::Mutate),
-    Clone(clone::Clone),
-    Fingerprint(fingerprint::Fingerprint<'static>),
+    // Clone(clone::Clone),
+    // Fingerprint(fingerprint::Fingerprint<'static>),
 }
 
 impl FilterBlock {
-    pub fn run(&self, receiver: Receiver<Value>) -> Receiver<Value> {
+    pub fn run(self, receiver: Receiver<Value>) -> Receiver<Value> {
 
-        let (filter_sender, outputs_receiver) = channel(1_024);
-        let filters = &self.0;
+        let (filter_sender, output_receiver) = channel(1_024);
         
-        receiver.for_each(|message| {
-            for filter in filters {
-                
-                let mut future = match filter {
-                    Filter::Mutate(mut p) => p.process(message),
-                    _ => panic!("kjhsdkjhsf")
-                };
-                dbg!(future.poll());
+        let filters_test = receiver.for_each(move |message| {
 
+            let mut test = stream::iter_ok::<_, ()>(self.0.clone())
+                .fold(Value::Null, |acc, curr| {
+                    match curr {
+                        Filter::Mutate(mut p) => p.process(message.clone()),
+                        _ => panic!("kjhsdkjhsf")
+                    }
+                });
+
+
+            if let Ok(v) = test.poll() {
+                if let Async::Ready(v) = v {
+                    filter_sender.clone().send(v).poll();
+                }
             }
+
             Ok(())
+                
         });
 
+        tokio::spawn(filters_test);
         
-        outputs_receiver
+        output_receiver
             
     }
-    
 }
 
 mod aggregate;

@@ -45,14 +45,14 @@ pub struct InputBlock(pub Vec<Input>);
 impl InputBlock {
     pub fn run(self) -> Receiver<Value> {
 
-        let (inputs_sender, filter_receiver) = channel(1_024);
+        let (input_sender, filter_receiver) = channel(1_024);
         
         self.0.into_iter().for_each(|mut input| {
             match input {
-                Input::Exec(_, ref mut s) => *s = Some(inputs_sender.clone()),
-                Input::HttpPoller(_, ref mut s) => *s = Some(inputs_sender.clone()),
-                Input::S3(_, ref mut s) => *s = Some(inputs_sender.clone()),
-                Input::Generator(_, ref mut s) => *s = Some(inputs_sender.clone()),
+                Input::Exec(_, ref mut s) => *s = Some(input_sender.clone()),
+                Input::HttpPoller(_, ref mut s) => *s = Some(input_sender.clone()),
+                Input::S3(_, ref mut s) => *s = Some(input_sender.clone()),
+                Input::Generator(_, ref mut s) => *s = Some(input_sender.clone()),
             }
 
             tokio::spawn(input);

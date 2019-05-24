@@ -80,7 +80,7 @@ impl TryFrom<toml::Value> for Generator {
         if let Some(lines) = toml.get("lines") {
             let lines = lines.as_array()
                 .expect("Couldn't parse Generator message field as array.")
-                .into_iter()
+                .iter()
                 .map(|x| x.as_str().unwrap().to_owned())
                 .collect();
 

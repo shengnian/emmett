@@ -20,8 +20,8 @@ impl Pipeline {
 
     pub fn run(self) {
         let filter_receiver = self.0.run();
-        let outputs_receiver = self.1.run(filter_receiver);
-        self.2.run(outputs_receiver);
+        let output_receiver = self.1.run(filter_receiver);
+        self.2.run(output_receiver);
     }
 
     pub fn from_toml(path: &Path) -> Pipeline {
@@ -47,7 +47,7 @@ impl Pipeline {
 
         if let Some(input_block) = toml.get("inputs") {
             if let Some(input_block) = input_block.as_array() {
-                input_block.into_iter().for_each(|input| {
+                input_block.iter().for_each(|input| {
                     inputs.0.push(input.to_input());
                 });
             }
@@ -55,7 +55,7 @@ impl Pipeline {
 
         if let Some(filter_block) = toml.get("filters") {
             if let Some(filter_block) = filter_block.as_array() {
-                filter_block.into_iter().for_each(|filter| {
+                filter_block.iter().for_each(|filter| {
                     filters.0.push(filter.to_filter());
                 });
             }
