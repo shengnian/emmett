@@ -1,6 +1,6 @@
 use futures::{
     sync::mpsc::{channel, Receiver, Sender},
-    Future, Poll, Sink, Stream,
+    Future, Poll, Sink, Stream, Async
 };
 use serde_json::Value;
 
@@ -16,153 +16,29 @@ pub enum Filter {
 }
 
 impl FilterBlock {
-    pub fn run(self, filter_receiver: Receiver<Value>) -> Receiver<Value> {
-        let mut filters = self.0;
-        
+    pub fn run(&self, receiver: Receiver<Value>) -> Receiver<Value> {
+
         let (filter_sender, outputs_receiver) = channel(1_024);
+        let filters = &self.0;
         
-        let last = filters.len() -1;
+        receiver.for_each(|message| {
+            for filter in filters {
+                
+                let mut future = match filter {
+                    Filter::Mutate(mut p) => p.process(message),
+                    _ => panic!("kjhsdkjhsf")
+                };
+                dbg!(future.poll());
 
-        // if there are no filters, connect the filter_receiver to the filter_sender
+            }
+            Ok(())
+        });
 
-        // let no_filter_channel = receiver.for_each(|message| {
-        //     sender.clone().send(message);
-        //     Ok(())
-        // });
-
-        filters
-            .iter_mut()
-            .enumerate()
-            .fold(channel(1_024), |mut acc, (i, mut filter)| {
-                let (tx, rx) = channel(1_024);
-
-                if i == 0 {
-                    match &mut filter {
-                        Filter::Clone(ref mut p) => {
-                            p._receiver = None;
-                            p._sender = Some(tx);
-                        }
-                        Filter::Fingerprint(ref mut p) => {
-                            p._receiver = None;
-                            p._sender = Some(tx);
-                        }
-                        Filter::Geoip(ref mut p) => {
-                            p._receiver = None;
-                            p._sender = Some(tx);
-                        }
-                        Filter::Json(ref mut p) => {
-                            p._receiver = None;
-                            p._sender = Some(tx);
-                        }
-                        Filter::Mutate(ref mut p) => {
-                            p._receiver = None;
-                            p._sender = Some(tx);
-                        }
-                    };
-                    acc.1 = rx;
-                    acc
-                } else if (i > 0) && (i < last) {
-                    match &mut filter {
-                        Filter::Clone(ref mut p) => {
-                            p._receiver = Some(acc.1);
-                            p._sender = Some(tx);
-                        }
-                        Filter::Fingerprint(ref mut p) => {
-                            p._receiver = Some(acc.1);
-                            p._sender = Some(tx);
-                        }
-                        Filter::Geoip(ref mut p) => {
-                            p._receiver = Some(acc.1);
-                            p._sender = Some(tx);
-                        }
-                        Filter::Json(ref mut p) => {
-                            p._receiver = Some(acc.1);
-                            p._sender = Some(tx);
-                        }
-                        Filter::Mutate(ref mut p) => {
-                            p._receiver = Some(acc.1);
-                            p._sender = Some(tx);
-                        }
-                    };
-
-                    acc.1 = rx;
-                    acc
-                } else {
-                    match &mut filter {
-                        Filter::Clone(ref mut p) => {
-                            p._receiver = Some(acc.1);
-                            p._sender = None;
-                        }
-                        Filter::Fingerprint(ref mut p) => {
-                            p._receiver = Some(acc.1);
-                            p._sender = None;
-                        }
-                        Filter::Geoip(ref mut p) => {
-                            p._receiver = Some(acc.1);
-                            p._sender = None;
-                        }
-                        Filter::Json(ref mut p) => {
-                            p._receiver = Some(acc.1);
-                            p._sender = None;
-                        }
-                        Filter::Mutate(ref mut p) => {
-                            p._receiver = Some(acc.1);
-                            p._sender = None;
-                        }
-                    };
-
-                    channel(1_024)
-                }
-            });
-
-        if let Some(filter) = filters.get_mut(0) {
-            match filter {
-                Filter::Clone(ref mut p) => p._receiver = Some(filter_receiver),
-                Filter::Fingerprint(ref mut p) => p._receiver = Some(filter_receiver),
-                Filter::Geoip(ref mut p) => p._receiver = Some(filter_receiver),
-                Filter::Json(ref mut p) => p._receiver = Some(filter_receiver),
-                Filter::Mutate(ref mut p) => p._receiver = Some(filter_receiver),
-            };
-        }
-
-        if let Some(filter) = filters.iter_mut().last() {
-            match filter {
-                Filter::Clone(ref mut p) => p._sender = Some(filter_sender),
-                Filter::Fingerprint(ref mut p) => p._sender = Some(filter_sender),
-                Filter::Geoip(ref mut p) => p._sender = Some(filter_sender),
-                Filter::Json(ref mut p) => p._sender = Some(filter_sender),
-                Filter::Mutate(ref mut p) => p._sender = Some(filter_sender),
-            };
-        }
-
-        for filter in filters {
-            tokio::spawn(filter);
-        }
-
+        
         outputs_receiver
-        
+            
     }
-}
-
-impl Future for Filter {
-    type Item = ();
-    type Error = ();
-
-    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
-        loop {
-            let _poll = match self {
-                Filter::Clone(p) => p.poll(),
-                Filter::Fingerprint(p) => p.poll(),
-                Filter::Geoip(p) => p.poll(),
-                Filter::Json(p) => p.poll(),
-                Filter::Mutate(p) => p.poll(),
-            };
-
-            // if let Some(message) = try_ready!(_poll) {
-            //     println!("{:#}", message);
-            // };
-        }
-    }
+    
 }
 
 mod aggregate;

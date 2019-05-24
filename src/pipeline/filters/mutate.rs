@@ -7,50 +7,82 @@ use serde_json::{json, value::Value};
 use std::convert::TryFrom;
 use toml::value::Table;
 
-impl Stream for Mutate {
-    type Item = Value;
-    type Error = ();
+// impl Stream for Mutate {
+//     type Item = Value;
+//     type Error = ();
 
-    fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-        let replace_setting = &self.replace;
-        let copy_setting = &self.copy;
-        if let Some(ref mut receiver) = &mut self._receiver {
+//     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
+//         let replace_setting = &self.replace;
+//         let copy_setting = &self.copy;
+
+//         if let Some(ref mut receiver) = &mut self._receiver {
             
-            let mut process = receiver.by_ref()
-                .map(|mut input_message| {
+//             let mut process = receiver.by_ref()
+//                 .map(|mut input_message| {
 
-                    if let Some(rep) = replace_setting {
-                        for (key, value) in rep.iter() {
-                            replace(&mut input_message, key, json!(value));
-                        }
-                    }
+//                     if let Some(rep) = replace_setting {
+//                         for (key, value) in rep.iter() {
+//                             replace(&mut input_message, key, json!(value));
+//                         }
+//                     }
 
-                    if let Some(cop) = copy_setting {
-                        for (key, value) in cop.iter() {
-                            let value = value.as_str().unwrap();
-                            copy(&mut input_message, key, value);
-                        }
-                    }
+//                     if let Some(cop) = copy_setting {
+//                         for (key, value) in cop.iter() {
+//                             let value = value.as_str().unwrap();
+//                             copy(&mut input_message, key, value);
+//                         }
+//                     }
                     
-                    strip(&mut input_message, vec!["message"]);
-                    split(&mut input_message, "body", "\n");
-                    input_message
-                });
+//                     strip(&mut input_message, vec!["message"]);
+//                     split(&mut input_message, "body", "\n");
+//                     input_message
+//                 });
 
-            if let Some(message) = try_ready!(process.poll()) {
-                let sender = self._sender.to_owned()
-                    .expect("No sender attached to Mutate");
-                let mut send = sender.send(message);
-                try_ready!(send.poll().map_err(|_| ()));
+//             if let Some(message) = try_ready!(process.poll()) {
+//                 let sender = self._sender.to_owned()
+//                     .expect("No sender attached to Mutate");
+//                 let mut send = sender.send(message);
+//                 try_ready!(send.poll().map_err(|_| ()));
+//             }
+
+//             Ok(Async::Ready(None))
+                
+//         } else {
+//             panic!("No receiver found for Mutate filter.");
+//         }
+//     }
+// }
+
+
+
+impl Mutate {
+    pub fn process(self, input: Value) -> impl Future<Item=Value, Error=()> {
+        futures::future::lazy(move || {
+
+            let mut input_copy = input.clone();
+            
+            if let Some(rep) = self.replace {
+                for (key, value) in rep.iter() {
+                    replace(&mut input_copy, key, json!(value));
+                }
             }
 
-            Ok(Async::Ready(None))
+            if let Some(cop) = self.copy {
+                for (key, value) in cop.iter() {
+                    let value = value.as_str().unwrap();
+                    copy(&mut input_copy, key, value);
+                }
+            }
+            
+            strip(&mut input_copy, vec!["message"]);
+            split(&mut input_copy, "body", "\n");
+            
+            Ok(input_copy)
                 
-        } else {
-            panic!("No receiver found for GeoipFilter.");
-        }
+        })
     }
 }
+
 
 fn copy(message: &mut Value, src: &str, dest: &str) {
     if let Some(val) = message.get(src) {
