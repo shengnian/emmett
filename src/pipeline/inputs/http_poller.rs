@@ -14,76 +14,18 @@ impl Stream for HttpPoller {
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-        let mut client = Client::builder();
-
-        // automatic_retries
-        // not implemented in Reqwest yet
-
-        // cacert
-        if let Some(cacert_path) = self.cacert {
-            let mut buf = Vec::new();
-            File::open(cacert_path)
-                .expect("Couldn't find CA file.")
-                .read_to_end(&mut buf)
-                .expect("Couldn't read CA file.");
-
-            let cert =
-                Certificate::from_der(&buf).expect("Certificate cannot be created from file.");
-
-            client = client.add_root_certificate(cert);
-        }
-
-        // client_cert
-
-        // client_key
-
-        // connect_timeout
-        if let Some(timeout) = self.connect_timeout {
-            client = client.timeout(timeout);
-        }
-
-        // cookies
-        client = client.cookie_store(self.cookies);
-
-        // follow_redirects
-        if self.follow_redirects == Some(true) {
-            client = client.redirect(RedirectPolicy::default());
-        }
-
-        // keepalive
-
-        // keystore and keystore_password
-
-        // keystore_type
-
-        // pool_max
-        client = client.max_idle_per_host(self.pool_max);
-
-        // pool_max_per_route
-        // careful about this and pool_max
-
-        // proxy
-        if let Some(proxy) = self.proxy.to_owned() {
-            client = client.proxy(proxy);
-        }
-
-        // request_timeout
-        if let Some(timeout) = self.request_timeout {
-            client = client.timeout(Duration::from_secs(timeout));
-        }
-
-        // retry_non_idempotent
-
-        let client = client.build().expect("Couldn't build Reqwest client.");
-
+        
         // schedule
         try_ready!(self.schedule.poll().map_err(|_| ()));
 
+        let client = self._client.as_ref().expect("Couldn't find _client for HttpPoller input.");
+        
         // urls
         let mut response_stream = iter_ok(self.urls.to_owned()).map(|uri| {
 
             let url = url::Url::parse(&uri)
                 .expect("Couldn't parse URI in HttpPoller config.");
+            
             let mut req = client.request(http::Method::GET, url);
 
             // user and password
@@ -91,21 +33,17 @@ impl Stream for HttpPoller {
                 req = req.basic_auth(user, pass);
             }
 
-            let res = req
+            req
                 .send()
                 .expect("Couldn't send HttpPoller request.")
                 .json()
-                .expect("Couldn't parse HttpPoller response as JSON.");
+                .expect("Couldn't parse HttpPoller response as JSON.")
 
             // metadata_target
 
-            res
-                
         });
 
-        let message = try_ready!(response_stream.poll());
-
-        Ok(Async::Ready(message))
+        response_stream.poll()
 
     }
 }
@@ -139,6 +77,7 @@ pub struct HttpPoller {
     truststore_type: String,
     urls: Vec<String>,
     validate_after_inactivity: Option<u64>,
+    _client: Option<Client>,
     pub _sender: Option<Sender<Value>>,
 }
 
@@ -164,7 +103,7 @@ impl Default for HttpPoller {
             proxy: None,
             request_timeout: Some(60),
             retry_non_idempotent: Some(false),
-            schedule: Interval::new_interval(Duration::from_millis(500)),
+            schedule: Interval::new_interval(Duration::from_millis(200)),
             socket_timeout: Some(10),
             target: None,
             truststore: None,
@@ -172,6 +111,7 @@ impl Default for HttpPoller {
             truststore_type: "JKS".to_string(),
             urls: Vec::new(),
             validate_after_inactivity: Some(200),
+            _client: None,
             _sender: None,
         }
     }
@@ -211,7 +151,72 @@ impl TryFrom<toml::Value> for HttpPoller {
                 });
             }
         }
-            
+
+        // build client
+        
+        let mut client = Client::builder();
+
+        // automatic_retries
+        // not implemented in Reqwest yet
+
+        // cacert
+        if let Some(cacert_path) = poller.cacert {
+            let mut buf = Vec::new();
+            File::open(cacert_path)
+                .expect("Couldn't find CA file.")
+                .read_to_end(&mut buf)
+                .expect("Couldn't read CA file.");
+
+            let cert =
+                Certificate::from_der(&buf).expect("Certificate cannot be created from file.");
+
+            client = client.add_root_certificate(cert);
+        }
+
+        // client_cert
+
+        // client_key
+
+        // connect_timeout
+        if let Some(timeout) = poller.connect_timeout {
+            client = client.timeout(timeout);
+        }
+
+        // cookies
+        client = client.cookie_store(poller.cookies);
+
+        // follow_redirects
+        if poller.follow_redirects == Some(true) {
+            client = client.redirect(RedirectPolicy::default());
+        }
+
+        // keepalive
+
+        // keystore and keystore_password
+
+        // keystore_type
+
+        // pool_max
+        client = client.max_idle_per_host(poller.pool_max);
+
+        // pool_max_per_route
+        // careful about this and pool_max
+
+        // proxy
+        if let Some(proxy) = poller.proxy.to_owned() {
+            client = client.proxy(proxy);
+        }
+
+        // request_timeout
+        if let Some(timeout) = poller.request_timeout {
+            client = client.timeout(Duration::from_secs(timeout));
+        }
+
+        // retry_non_idempotent
+
+        let client = client.build().expect("Couldn't build Reqwest client.");
+        poller._client = Some(client);
+        
         Ok(poller)
         
     }

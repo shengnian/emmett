@@ -5,44 +5,84 @@ use futures::{
 };
 use serde_json::{json, value::Value};
 use std::convert::TryFrom;
+use toml::value::Table;
 
-impl Stream for Mutate {
-    type Item = Value;
-    type Error = ();
+// impl Stream for Mutate {
+//     type Item = Value;
+//     type Error = ();
 
-    fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-        let replace_setting = &self.replace;
-        if let Some(ref mut receiver) = &mut self._receiver {
+//     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
+//         let replace_setting = &self.replace;
+//         let copy_setting = &self.copy;
+
+//         if let Some(ref mut receiver) = &mut self._receiver {
             
-            let mut process = receiver.by_ref()
-                .map(|mut input_message| {
+//             let mut process = receiver.by_ref()
+//                 .map(|mut input_message| {
 
-                    if let Some(rep) = replace_setting {
-                        for (key, value) in rep.iter() {
-                            replace(&mut input_message, key, json!(value));
-                        }
-                    }
+//                     if let Some(rep) = replace_setting {
+//                         for (key, value) in rep.iter() {
+//                             replace(&mut input_message, key, json!(value));
+//                         }
+//                     }
+
+//                     if let Some(cop) = copy_setting {
+//                         for (key, value) in cop.iter() {
+//                             let value = value.as_str().unwrap();
+//                             copy(&mut input_message, key, value);
+//                         }
+//                     }
                     
-                    strip(&mut input_message, vec!["message"]);
-                    split(&mut input_message, "body", "\n");
-                    copy(&mut input_message, "userId", "userIdCopy");
-                    input_message
-                });
+//                     strip(&mut input_message, vec!["message"]);
+//                     split(&mut input_message, "body", "\n");
+//                     input_message
+//                 });
 
-            if let Some(message) = try_ready!(process.poll()) {
-                let sender = self._sender.to_owned()
-                    .expect("No sender attached to Mutate");
-                let mut send = sender.send(message);
-                try_ready!(send.poll().map_err(|_| ()));
+//             if let Some(message) = try_ready!(process.poll()) {
+//                 let sender = self._sender.to_owned()
+//                     .expect("No sender attached to Mutate");
+//                 let mut send = sender.send(message);
+//                 try_ready!(send.poll().map_err(|_| ()));
+//             }
+
+//             Ok(Async::Ready(None))
+                
+//         } else {
+//             panic!("No receiver found for Mutate filter.");
+//         }
+//     }
+// }
+
+
+
+impl Mutate {
+    pub fn process(self, input: Value) -> impl Future<Item=Value, Error=()> {
+        futures::future::lazy(move || {
+
+            let mut input_copy = input.clone();
+            
+            if let Some(rep) = self.replace {
+                for (key, value) in rep.iter() {
+                    replace(&mut input_copy, key, json!(value));
+                }
             }
 
-            Ok(Async::Ready(None))
+            if let Some(cop) = self.copy {
+                for (key, value) in cop.iter() {
+                    let value = value.as_str().unwrap();
+                    copy(&mut input_copy, key, value);
+                }
+            }
+            
+            strip(&mut input_copy, vec!["message"]);
+            split(&mut input_copy, "body", "\n");
+            
+            Ok(input_copy)
                 
-        } else {
-            panic!("No receiver found for GeoipFilter.");
-        }
+        })
     }
 }
+
 
 fn copy(message: &mut Value, src: &str, dest: &str) {
     if let Some(val) = message.get(src) {
@@ -149,24 +189,24 @@ fn uppercase(message: &mut Value, fields: Vec<&str>) {
 //     }
 // }
 
-#[derive(Debug)]
+
+
+#[derive(Debug, Clone)]
 pub struct Mutate {
     convert: Option<Value>,
-    copy: Option<String>,
+    copy: Option<Table>,
     gsub: Option<String>,
     join: Option<String>,
     lowercase: Option<String>,
     merge: Option<String>,
     coerce: Option<String>,
     rename: Option<String>,
-    replace: Option<toml::value::Table>,
+    replace: Option<Table>,
     split: Option<String>,
     strip: Option<Vec<String>>,
     update: Option<String>,
     uppercase: Option<Vec<String>>,
     capitalize: Option<Vec<String>>,
-    pub _receiver: Option<Receiver<Value>>,
-    pub _sender: Option<Sender<Value>>,
 }
 
 impl Default for Mutate {
@@ -186,8 +226,6 @@ impl Default for Mutate {
             update: None,
             uppercase: None,
             capitalize: None,
-            _receiver: None,
-            _sender: None,
         }
     }
 }
@@ -203,10 +241,16 @@ impl TryFrom<&toml::Value> for Mutate {
         
         if let Some(replace) = toml.get("replace") {
             let replace = replace.as_table()
-                .expect("Couldn't parse Generator count field as integer.");
+                .expect("Couldn't parse Mutate replace as table.");
             mutate.replace = Some(replace.to_owned());
         }
-            
+
+        if let Some(copy) = toml.get("copy") {
+            let copy = copy.as_table()
+                .expect("Couldn't parse Mutate copy field as table.");
+            mutate.copy = Some(copy.to_owned());
+        }
+
         Ok(mutate)
         
     }

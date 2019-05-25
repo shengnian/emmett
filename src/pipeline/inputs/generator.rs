@@ -1,29 +1,33 @@
 #![allow(unused)]
 
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-generator.html
-use futures::{sync::mpsc::Sender, Async, Poll, Stream};
+use futures::{sync::mpsc::Sender, Async, Poll, Stream, try_ready};
 use serde_json::{json, value::Value};
 use std::thread::sleep;
 use std::time::Duration;
 use std::convert::TryFrom;
+use tokio::timer::Interval;
 
 impl Stream for Generator {
     type Item = Value;
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-        sleep(Duration::from_millis(200));
 
         // let message = json!({
-        //     "ip": "108.55.13.247",
-        //     "jsonString": "{\n  \"userId\": 1,\n  \"id\": 1,\n  \"title\": \"delectus aut autem\",\n  \"completed\": false\n}"
+        //     "message": self.message
         // });
-
+        
+        let timer = self._timer.poll();
+        try_ready!(timer.map_err(|_| ()));
+        
         let message = json!({
-            "message": self.message
+            "ip": "108.55.13.247",
+            "jsonString": "{\n  \"userId\": 1,\n  \"id\": 1,\n  \"title\": \"delectus aut autem\",\n  \"completed\": false\n}"
         });
         
         Ok(Async::Ready(Some(message)))
+
     }
 }
 
@@ -34,6 +38,7 @@ pub struct Generator {
     message: String,
     threads: u32,
     pub _sender: Option<Sender<Value>>,
+    _timer: Interval
 }
 
 impl Generator {
@@ -52,6 +57,7 @@ impl Default for Generator {
             message: "Hello world!".to_string(),
             threads: 1,
             _sender: None,
+            _timer: Interval::new_interval(Duration::from_millis(100))
         }
     }
 }
@@ -74,7 +80,7 @@ impl TryFrom<toml::Value> for Generator {
         if let Some(lines) = toml.get("lines") {
             let lines = lines.as_array()
                 .expect("Couldn't parse Generator message field as array.")
-                .into_iter()
+                .iter()
                 .map(|x| x.as_str().unwrap().to_owned())
                 .collect();
 

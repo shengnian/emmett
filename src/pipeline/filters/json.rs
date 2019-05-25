@@ -28,16 +28,14 @@ impl<'a> Stream for Json<'a> {
                     .unwrap();
 
                 if let Ok(json) = serde_json::from_str(json_string) {
-                        input_message[target] = json;
-                        input_message
+                    input_message[target] = json;
+                    input_message
+                } else if skip_invalid {
+                    input_message
                 } else {
-                    if skip_invalid {
-                        input_message
-                    } else {
-                        // add tags
-                        tag(&mut input_message, tags);
-                        input_message
-                    }
+                    // add tags
+                    tag(&mut input_message, tags);
+                    input_message
                 }
                 
             });
@@ -56,7 +54,7 @@ impl<'a> Stream for Json<'a> {
     }
 }
 
-fn tag<'a>(message: &mut Value, tags: &Vec<&'a str>) {
+fn tag<'a>(message: &mut Value, tags: &[&'a str]) {
     message["tags"] = json!(tags);
 }
 

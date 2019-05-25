@@ -33,7 +33,7 @@ impl<'a> FileInput<'a> {
             delimiter: Some("\n"),
             discover_interval: Some(15),
             exclude: None,
-            file_chunk_count: Some(4611686018427387903),
+            file_chunk_count: Some(4_611_686_018_427_387_903),
             file_chunk_size: Some(32768),
             file_completed_action: Some("delete"),
             file_completed_log_path: None,
