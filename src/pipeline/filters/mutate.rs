@@ -7,54 +7,6 @@ use serde_json::{json, value::Value};
 use std::convert::TryFrom;
 use toml::value::Table;
 
-// impl Stream for Mutate {
-//     type Item = Value;
-//     type Error = ();
-
-//     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-//         let replace_setting = &self.replace;
-//         let copy_setting = &self.copy;
-
-//         if let Some(ref mut receiver) = &mut self._receiver {
-            
-//             let mut process = receiver.by_ref()
-//                 .map(|mut input_message| {
-
-//                     if let Some(rep) = replace_setting {
-//                         for (key, value) in rep.iter() {
-//                             replace(&mut input_message, key, json!(value));
-//                         }
-//                     }
-
-//                     if let Some(cop) = copy_setting {
-//                         for (key, value) in cop.iter() {
-//                             let value = value.as_str().unwrap();
-//                             copy(&mut input_message, key, value);
-//                         }
-//                     }
-                    
-//                     strip(&mut input_message, vec!["message"]);
-//                     split(&mut input_message, "body", "\n");
-//                     input_message
-//                 });
-
-//             if let Some(message) = try_ready!(process.poll()) {
-//                 let sender = self._sender.to_owned()
-//                     .expect("No sender attached to Mutate");
-//                 let mut send = sender.send(message);
-//                 try_ready!(send.poll().map_err(|_| ()));
-//             }
-
-//             Ok(Async::Ready(None))
-                
-//         } else {
-//             panic!("No receiver found for Mutate filter.");
-//         }
-//     }
-// }
-
-
-
 impl Mutate {
     pub fn process(self, input: Value) -> impl Future<Item=Value, Error=()> {
         futures::future::lazy(move || {
@@ -76,6 +28,7 @@ impl Mutate {
             
             strip(&mut input_copy, vec!["message"]);
             split(&mut input_copy, "body", "\n");
+            // capitalize(&mut input_copy, vec!["title"]);
             
             Ok(input_copy)
                 
@@ -180,14 +133,27 @@ fn uppercase(message: &mut Value, fields: Vec<&str>) {
     }
 }
 
-// fn capitalize(message: &mut Value, fields: Vec<&str>) {
-//     for field in fields {
-//         if let Some(val) = message.get_mut(field) {
-//             if let Some(str_val) = val.as_str() {
-//             }
-//         }
-//     }
-// }
+fn capitalize(message: &mut Value, fields: Vec<&str>) {
+    for field in fields {
+        if let Some(val) = message.get_mut(field) {
+            if let Some(mut str_val) = val.as_str() {
+
+                let mut capitalized = String::new();
+
+                for (i, char) in str_val.chars().enumerate() {
+                    if i == 0 {
+                        capitalized.push(char.to_ascii_uppercase());
+                    } else {
+                        capitalized.push(char);
+                    }
+                }
+
+                str_val = &capitalized;
+                
+            }
+        }
+    }
+}
 
 
 

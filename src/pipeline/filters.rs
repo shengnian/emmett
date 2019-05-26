@@ -1,7 +1,6 @@
 use futures::{
     sync::mpsc::{channel, Receiver, Sender},
-    Future, Poll, Sink, Stream, Async, try_ready,
-    stream
+    Future, Poll, Sink, Stream, Async, try_ready, stream
 };
 use serde_json::Value;
 
@@ -21,20 +20,18 @@ impl FilterBlock {
 
         let (filter_sender, output_receiver) = channel(1_024);
         
-        let filters_test = receiver.for_each(move |message| {
+        let filter_stream = receiver.for_each(move |message| {
 
-            let mut test = stream::iter_ok::<_, ()>(self.0.clone())
-                .fold(Value::Null, |acc, curr| {
+            let mut fold = stream::iter_ok::<_, ()>(self.0.to_owned())
+                .fold(message, |acc, curr| {
                     match curr {
-                        Filter::Mutate(mut p) => p.process(message.clone()),
-                        _ => panic!("kjhsdkjhsf")
+                        Filter::Mutate(mut p) => p.process(acc),
                     }
                 });
-
-
-            if let Ok(v) = test.poll() {
+            
+            if let Ok(v) = fold.poll() {
                 if let Async::Ready(v) = v {
-                    filter_sender.clone().send(v).poll();
+                    filter_sender.to_owned().send(v).poll();
                 }
             }
 
@@ -42,7 +39,7 @@ impl FilterBlock {
                 
         });
 
-        tokio::spawn(filters_test);
+        tokio::spawn(filter_stream);
         
         output_receiver
             
