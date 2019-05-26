@@ -18,32 +18,30 @@ impl Stream for HttpPoller {
         // schedule
         try_ready!(self.schedule.poll().map_err(|_| ()));
 
-        let client = self._client.as_ref().expect("Couldn't find _client for HttpPoller input.");
+        let client = self._client.as_ref()
+            .expect("Couldn't access http client for HttpPoller input.");
         
         // urls
-        let mut response_stream = iter_ok(self.urls.to_owned()).map(|uri| {
 
-            let url = url::Url::parse(&uri)
-                .expect("Couldn't parse URI in HttpPoller config.");
-            
-            let mut req = client.request(http::Method::GET, url);
+        // only use first url for now
+        let url = url::Url::parse(&self.urls[0])
+            .expect("Couldn't parse URI in HttpPoller input config.");
+        
+        let mut req = client.request(http::Method::GET, url);
 
-            // user and password
-            if let (Some(user), pass) = (self.user.to_owned(), self.password.to_owned()) {
-                req = req.basic_auth(user, pass);
-            }
+        // user and password
+        if let (Some(user), pass) = (self.user.to_owned(), self.password.to_owned()) {
+            req = req.basic_auth(user, pass);
+        }
 
-            req
-                .send()
-                .expect("Couldn't send HttpPoller request.")
-                .json()
-                .expect("Couldn't parse HttpPoller response as JSON.")
+        let res = req.send()
+            .expect("Couldn't send HttpPoller input request.")
+            .json()
+            .expect("Couldn't parse HttpPoller input response as JSON.");
 
-            // metadata_target
+        // metadata_target
 
-        });
-
-        response_stream.poll()
+        Ok(Async::Ready(res))
 
     }
 }
@@ -167,8 +165,7 @@ impl TryFrom<toml::Value> for HttpPoller {
                 .read_to_end(&mut buf)
                 .expect("Couldn't read CA file.");
 
-            let cert =
-                Certificate::from_der(&buf).expect("Certificate cannot be created from file.");
+            let cert = Certificate::from_der(&buf).expect("Certificate cannot be created from file.");
 
             client = client.add_root_certificate(cert);
         }
@@ -203,7 +200,7 @@ impl TryFrom<toml::Value> for HttpPoller {
         // careful about this and pool_max
 
         // proxy
-        if let Some(proxy) = poller.proxy.to_owned() {
+        if let Some(proxy) = poller.proxy.take() {
             client = client.proxy(proxy);
         }
 

@@ -8,7 +8,7 @@ providing added / improved features.
 emmett is written in [Rust](https://www.rust-lang.org/) and uses [Tokio](https://tokio.rs/), which means:
 
 - Blazing fast ⚡⚡⚡
-- Very small resource requirements (currently needs less than 5 MB RAM for simple pipelines)
+- Very small resource requirements (currently needs less than 3 MB RAM for simple pipelines)
 - No garbage collector == better and more consistent performance
 - Completely asynchronous - plugins operate independently of one another
 - Multithreaded and [work-stealing](https://en.wikipedia.org/wiki/Work_stealing)
