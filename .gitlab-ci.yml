@@ -1,0 +1,19 @@
+image: "rust:latest"
+
+cache:
+  paths:
+  - ./target
+
+.test:
+  script:
+  - rustc --version && cargo --version
+  - cargo test --all --verbose
+
+build:
+  stage: build
+  script:
+  - cargo build --release
+  - mv ./target/release/emmett $CI_PROJECT_DIR/emmett
+  artifacts:
+    paths:
+    - emmett
