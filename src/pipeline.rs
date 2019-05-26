@@ -12,6 +12,8 @@ use std::io::Read;
 use std::path::Path;
 use std::convert::TryFrom;
 
+use log::Level;
+
 use futures::{sync::mpsc};
 
 pub struct Pipeline(pub InputBlock, pub FilterBlock, pub OutputBlock);
@@ -19,8 +21,11 @@ pub struct Pipeline(pub InputBlock, pub FilterBlock, pub OutputBlock);
 impl Pipeline {
 
     pub fn run(self) {
+        debug!("Running InputBlock");
         let filter_receiver = self.0.run();
+        debug!("Running FilterBlock");
         let output_receiver = self.1.run(filter_receiver);
+        debug!("Running OutputBlock");
         self.2.run(output_receiver);
     }
 

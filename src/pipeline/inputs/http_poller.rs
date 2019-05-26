@@ -14,9 +14,13 @@ impl Stream for HttpPoller {
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
+
+        debug!("Polled HttpPoller input.");
         
         // schedule
         try_ready!(self.schedule.poll().map_err(|_| ()));
+
+        debug!("HttpPoller timer is ready.");
 
         let client = self._client.as_ref()
             .expect("Couldn't access http client for HttpPoller input.");
@@ -34,11 +38,15 @@ impl Stream for HttpPoller {
             req = req.basic_auth(user, pass);
         }
 
+        debug!("Sending http request.");
+
         let res = req.send()
             .expect("Couldn't send HttpPoller input request.")
             .json()
             .expect("Couldn't parse HttpPoller input response as JSON.");
 
+        debug!("Received http response.");
+        
         // metadata_target
 
         Ok(Async::Ready(res))

@@ -22,6 +22,8 @@ impl FilterBlock {
         
         let filter_stream = receiver.for_each(move |message| {
 
+            debug!("FilterBlock received a message.");
+
             let mut fold = stream::iter_ok::<_, ()>(self.0.to_owned())
                 .fold(message, |acc, curr| {
                     match curr {
@@ -31,7 +33,9 @@ impl FilterBlock {
             
             if let Ok(v) = fold.poll() {
                 if let Async::Ready(v) = v {
+                    debug!("FilterBlock preparing to send a message.");
                     filter_sender.to_owned().send(v).poll();
+                    debug!("FilterBlock sent a message.");
                 }
             }
 
