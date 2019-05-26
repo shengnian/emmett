@@ -19,6 +19,9 @@ impl Future for Input {
 
     fn poll(&mut self) -> Poll<(), Self::Error> {
         loop {
+            
+            debug!("Polling Input plugins.");
+
             let poll = match self {
                 Input::Exec(p, _) => p.poll(),
                 Input::HttpPoller(p, _) => p.poll(),
@@ -26,8 +29,12 @@ impl Future for Input {
                 Input::Generator(p, _) => p.poll(),
             };
 
+
             if let Some(message) = try_ready!(poll) {
-                if let Some(sender) = match self {
+
+                debug!("Received message from Input plugin.");
+
+                    if let Some(sender) = match self {
                     Input::Exec(_, s) => s,
                     Input::HttpPoller(_, s) => s,
                     Input::S3(_, s) => s,
@@ -48,6 +55,7 @@ impl InputBlock {
         let (input_sender, filter_receiver) = channel(1_024);
         
         self.0.into_iter().for_each(|mut input| {
+
             match input {
                 Input::Exec(_, ref mut s) => *s = Some(input_sender.clone()),
                 Input::HttpPoller(_, ref mut s) => *s = Some(input_sender.clone()),
