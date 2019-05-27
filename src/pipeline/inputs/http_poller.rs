@@ -14,11 +14,12 @@ impl Stream for HttpPoller {
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-
-        debug!("Polled HttpPoller input.");
         
+        debug!("Polled HttpPoller input.");
+
         // schedule
         try_ready!(self.schedule.poll().map_err(|_| ()));
+        // std::thread::sleep(Duration::from_secs(1));
 
         debug!("HttpPoller timer is ready.");
 
@@ -39,7 +40,7 @@ impl Stream for HttpPoller {
         }
 
         debug!("Sending http request.");
-
+        
         let res = req.send()
             .expect("Couldn't send HttpPoller input request.")
             .json()
@@ -48,6 +49,8 @@ impl Stream for HttpPoller {
         debug!("Received http response.");
         
         // metadata_target
+
+        debug!("HttpPoller input plugin sending message.");
 
         Ok(Async::Ready(res))
 
@@ -109,7 +112,7 @@ impl Default for HttpPoller {
             proxy: None,
             request_timeout: Some(60),
             retry_non_idempotent: Some(false),
-            schedule: Interval::new_interval(Duration::from_millis(200)),
+            schedule: Interval::new_interval(Duration::from_millis(1000)),
             socket_timeout: Some(10),
             target: None,
             truststore: None,
@@ -123,10 +126,10 @@ impl Default for HttpPoller {
     }
 }
 
-impl TryFrom<toml::Value> for HttpPoller {
+impl TryFrom<&toml::Value> for HttpPoller {
     type Error = ();
     
-    fn try_from(toml: toml::Value) -> Result<Self, Self::Error> {
+    fn try_from(toml: &toml::Value) -> Result<Self, Self::Error> {
 
         let mut poller = HttpPoller {
             ..Default::default()

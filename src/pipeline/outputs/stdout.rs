@@ -13,6 +13,7 @@ impl Stream for Stdout {
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
         if let Some(receiver) = &self._receiver {
             if let Ok(message) = receiver.recv() {
+                debug!("Stdout output plugin received a message.");
                 println!("{:#}", message);
             }
             Ok(Async::Ready(None))

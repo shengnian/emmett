@@ -2,11 +2,11 @@
 
 [[inputs]]
 
-# [inputs.generator]
-# count = 3
-# lines =  ["line 1", "line 2", "line 3"]
-# message = "Hello world!"
-# threads = 1
+[inputs.generator]
+count = 3
+lines =  ["line 1", "line 2", "line 3"]
+message = "Hello world!"
+threads = 1
 
 # [inputs.exec]
 # command = "ls"
@@ -38,11 +38,11 @@ test1 = "https://jsonplaceholder.typicode.com/posts/1"
 replace = { "id" = "yo dawg" }
 copy = { "title" = "titleCopy" }
 
-[filters.grok]
-match = { message = "%{COMBINEDAPACHELOG}" }
+# [filters.grok]
+# match = { message = "%{COMBINEDAPACHELOG}" }
     
-[filters.date]
-match = [ "timestamp" , "dd/MMM/yyyy:HH:mm:ss Z" ]	
+# [filters.date]
+# match = [ "timestamp" , "dd/MMM/yyyy:HH:mm:ss Z" ]	
 
 [[outputs]]
 

@@ -24,25 +24,26 @@ impl Future for Input {
 
             let poll = match self {
                 Input::Exec(p, _) => p.poll(),
+                Input::Generator(p, _) => p.poll(),
                 Input::HttpPoller(p, _) => p.poll(),
                 Input::S3(p, _) => p.poll(),
-                Input::Generator(p, _) => p.poll(),
             };
-
 
             if let Some(message) = try_ready!(poll) {
 
                 debug!("Received message from Input plugin.");
 
-                    if let Some(sender) = match self {
+                if let Some(sender) = match self {
                     Input::Exec(_, s) => s,
+                    Input::Generator(_, s) => s,
                     Input::HttpPoller(_, s) => s,
                     Input::S3(_, s) => s,
-                    Input::Generator(_, s) => s,
                 } {
                     try_ready!(sender.send(message).poll().map_err(|_| ()));
                 }
+                
             }
+            
         }
     }
 }
@@ -53,15 +54,19 @@ impl InputBlock {
     pub fn run(self) -> Receiver<Value> {
 
         let (input_sender, filter_receiver) = channel(1_024);
+
+        // dbg!(&self.0);
         
         self.0.into_iter().for_each(|mut input| {
 
             match input {
                 Input::Exec(_, ref mut s) => *s = Some(input_sender.clone()),
+                Input::Generator(_, ref mut s) => *s = Some(input_sender.clone()),
                 Input::HttpPoller(_, ref mut s) => *s = Some(input_sender.clone()),
                 Input::S3(_, ref mut s) => *s = Some(input_sender.clone()),
-                Input::Generator(_, ref mut s) => *s = Some(input_sender.clone()),
             }
+
+            debug!("Spawned a new Input plugin.");
 
             tokio::spawn(input);
 

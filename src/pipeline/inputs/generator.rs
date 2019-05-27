@@ -14,17 +14,16 @@ impl Stream for Generator {
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
 
-        // let message = json!({
-        //     "message": self.message
-        // });
+        debug!("Polled Generator plugin.");
         
-        let timer = self._timer.poll();
-        try_ready!(timer.map_err(|_| ()));
-        
+        try_ready!(self._timer.poll().map_err(|_| ()));
+
         let message = json!({
             "ip": "108.55.13.247",
             "jsonString": "{\n  \"userId\": 1,\n  \"id\": 1,\n  \"title\": \"delectus aut autem\",\n  \"completed\": false\n}"
         });
+
+        // std::thread::sleep(Duration::from_secs(1));
         
         Ok(Async::Ready(Some(message)))
 
@@ -57,15 +56,15 @@ impl Default for Generator {
             message: "Hello world!".to_string(),
             threads: 1,
             _sender: None,
-            _timer: Interval::new_interval(Duration::from_millis(100))
+            _timer: Interval::new_interval(Duration::from_millis(500))
         }
     }
 }
 
-impl TryFrom<toml::Value> for Generator {
+impl TryFrom<&toml::Value> for Generator {
     type Error = ();
     
-    fn try_from(toml: toml::Value) -> Result<Self, Self::Error> {
+    fn try_from(toml: &toml::Value) -> Result<Self, Self::Error> {
 
         let mut generator = Generator {
             ..Default::default()
