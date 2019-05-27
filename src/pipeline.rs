@@ -53,7 +53,11 @@ impl Pipeline {
         if let Some(input_block) = toml.get("inputs") {
             if let Some(input_block) = input_block.as_array() {
                 input_block.iter().for_each(|input| {
-                    inputs.0.push(input.to_input());
+                    if let Some(input_block) = input.as_table() {
+                        input_block.iter().for_each(|input| {
+                            inputs.0.push(input.to_input());
+                        })
+                    }
                 });
             }
         }
@@ -61,7 +65,11 @@ impl Pipeline {
         if let Some(filter_block) = toml.get("filters") {
             if let Some(filter_block) = filter_block.as_array() {
                 filter_block.iter().for_each(|filter| {
-                    filters.0.push(filter.to_filter());
+                    if let Some(filter_block) = filter.as_table() {
+                        filter_block.iter().for_each(|filter| {
+                            filters.0.push(filter.to_filter());
+                        })
+                    }
                 });
             }
         }
@@ -76,17 +84,17 @@ trait InputPlugin {
     fn to_input(&self) -> Input;
 }
 
-impl InputPlugin for toml::Value {
+impl InputPlugin for (&String, &toml::Value) {
     fn to_input(&self) -> Input {
-        if let Some(generator) = self.get("generator") {
-            let plugin = Generator::try_from(generator.to_owned()).unwrap();
+        if self.0 == "generator" {
+            let plugin = Generator::try_from(self.1).unwrap();
             return Input::Generator(plugin, None)
         };
-        if let Some(poller) = self.get("http_poller") {
-            let plugin = HttpPoller::try_from(poller.to_owned()).unwrap();
+        if self.0 == "http_poller" {
+            let plugin = HttpPoller::try_from(self.1).unwrap();
             return Input::HttpPoller(plugin, None)
         };
-        panic!("Bad config.");
+        panic!("Bad Input config.");
     }
 }
 
@@ -94,13 +102,13 @@ trait FilterPlugin {
     fn to_filter(&self) -> Filter;
 }
 
-impl FilterPlugin for toml::Value {
+impl FilterPlugin for (&String, &toml::Value) {
     fn to_filter(&self) -> Filter {
-        if let Some(mutate) = self.get("mutate") {
-            let plugin = Mutate::try_from(mutate)
+        if self.0 == "mutate" {
+            let plugin = Mutate::try_from(self.1)
                 .expect("Incorrect Mutate filter config.");
             return Filter::Mutate(plugin)
         };
-        panic!("Bad config.");
+        panic!("Bad Filter config.");
     }
 }

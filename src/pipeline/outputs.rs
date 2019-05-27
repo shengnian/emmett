@@ -30,6 +30,7 @@ impl OutputBlock {
 
         // for every message sent to the `output` block, send to each output separately
         let broadcast = outputs_receiver.for_each(move |message| {
+            debug!("OutputBlock received a message.");
             s.send(message).unwrap();
             Ok(())
         });
