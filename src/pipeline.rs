@@ -12,8 +12,6 @@ use std::io::Read;
 use std::path::Path;
 use std::convert::TryFrom;
 
-use log::Level;
-
 use futures::{sync::mpsc};
 
 pub struct Pipeline(pub InputBlock, pub FilterBlock, pub OutputBlock);

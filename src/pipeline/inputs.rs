@@ -55,8 +55,6 @@ impl InputBlock {
 
         let (input_sender, filter_receiver) = channel(1_024);
 
-        // dbg!(&self.0);
-        
         self.0.into_iter().for_each(|mut input| {
 
             match input {

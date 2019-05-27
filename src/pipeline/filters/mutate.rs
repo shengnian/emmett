@@ -26,9 +26,19 @@ impl Mutate {
                 }
             }
             
-            strip(&mut input_copy, vec!["message"]);
-            split(&mut input_copy, "body", "\n");
-            // capitalize(&mut input_copy, vec!["title"]);
+            if let Some(strip_fields) = self.strip {
+                strip(&mut input_copy, strip_fields);
+            }
+
+            if let Some((split_field, split_at)) = self.split {
+                split(&mut input_copy, &split_field, &split_at);
+            }
+
+            if let Some(capitalize_fields) = self.capitalize {
+                capitalize(&mut input_copy, capitalize_fields);
+            }
+            
+            // join(&mut input_copy, "body", " ; ");
             
             Ok(input_copy)
                 
@@ -47,15 +57,28 @@ fn copy(message: &mut Value, src: &str, dest: &str) {
 
 // }
 
-// fn join(message: &mut Value, field: &str, seperator: &str) {
-//     if let Some(val) = message.get_mut(field) {
-//         if val.is_array() {
-//             let array = val.as_array().unwrap();
-//             let joined = array.join(seperator);
-//             *val = Value::String(joined);
-//         }
-//     }
-// }
+fn join(message: &mut Value, field: &str, seperator: &str) {
+    if let Some(val) = message.get_mut(field) {
+        if let Some(array) = val.as_array() {
+
+            let mut joined = String::new();
+            
+            for (i, item) in array.iter().enumerate() {
+                if let Some(string) = item.as_str() {
+                    if i < array.len() - 1 {
+                        joined.push_str(string);
+                        joined.push_str(seperator);
+                    } else {
+                        joined.push_str(string);
+                    }
+                }
+            }
+            
+            *val = Value::String(joined);
+
+        }
+    }
+}
 
 fn lowercase(message: &mut Value, fields: Vec<&str>) {
     for field in fields {
@@ -104,7 +127,7 @@ fn split(message: &mut Value, field: &str, separator: &str) {
     }
 }
 
-fn strip(message: &mut Value, fields: Vec<&str>) {
+fn strip(message: &mut Value, fields: Vec<String>) {
     for field in fields {
         if let Some(val) = message.get_mut(field) {
             if let Some(str_val) = val.as_str() {
@@ -133,10 +156,10 @@ fn uppercase(message: &mut Value, fields: Vec<&str>) {
     }
 }
 
-fn capitalize(message: &mut Value, fields: Vec<&str>) {
+fn capitalize(message: &mut Value, fields: Vec<String>) {
     for field in fields {
         if let Some(val) = message.get_mut(field) {
-            if let Some(mut str_val) = val.as_str() {
+            if let Some(str_val) = val.as_str() {
 
                 let mut capitalized = String::new();
 
@@ -148,14 +171,12 @@ fn capitalize(message: &mut Value, fields: Vec<&str>) {
                     }
                 }
 
-                str_val = &capitalized;
+                *val = json!(capitalized);
                 
             }
         }
     }
 }
-
-
 
 #[derive(Debug, Clone)]
 pub struct Mutate {
@@ -168,7 +189,7 @@ pub struct Mutate {
     coerce: Option<String>,
     rename: Option<String>,
     replace: Option<Table>,
-    split: Option<String>,
+    split: Option<(String, String)>,
     strip: Option<Vec<String>>,
     update: Option<String>,
     uppercase: Option<Vec<String>>,
@@ -216,7 +237,34 @@ impl TryFrom<&toml::Value> for Mutate {
                 .expect("Couldn't parse Mutate copy field as table.");
             mutate.copy = Some(copy.to_owned());
         }
+        
+        if let Some(strip_fields) = toml.get("strip") {
+            let strip_fields = strip_fields.as_array()
+                .expect("Couldn't parse Mutate strip field as array.");
+            let strip_fields = strip_fields.iter()
+                .map(|v| v.as_str().expect("Can't parse Mutate strip fields as strings.").to_string())
+                .collect();
+            mutate.strip = Some(strip_fields);
+        }
+        
+        if let Some(split_setting) = toml.get("split") {
+            let split_setting = split_setting.as_table()
+                .expect("Couldn't parse Mutate split field as table.");
+            for (field, value) in split_setting.iter().take(1) {
+                let value = value.as_str().expect("Can't parse Mutate filter split setting as string.");
+                mutate.split = Some((field.to_string(), value.to_string()));
+            }
+        }
 
+        if let Some(capitalize_fields) = toml.get("capitalize") {
+            let capitalize_fields = capitalize_fields.as_array()
+                .expect("Couldn't parse Mutate capitalize field as array.");
+            let capitalize_fields = capitalize_fields.iter()
+                .map(|v| v.as_str().expect("Can't parse Mutate capitalize fields as strings.").to_string())
+                .collect();
+            mutate.capitalize = Some(capitalize_fields);
+        }
+        
         Ok(mutate)
         
     }

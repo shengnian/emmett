@@ -8,39 +8,37 @@ use std::path::Path;
 use std::time::Duration;
 use tokio::timer::Interval;
 use std::convert::TryFrom;
+use url::Url;
 
 impl Stream for HttpPoller {
     type Item = Value;
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-        
+
         debug!("Polled HttpPoller input.");
 
         // schedule
-        try_ready!(self.schedule.poll().map_err(|_| ()));
-        // std::thread::sleep(Duration::from_secs(1));
-
-        debug!("HttpPoller timer is ready.");
-
+        try_ready!(self.schedule.poll().map_err(|e| panic!("HttpPoller timer failed: {:#?}", e)));
+        debug!("HttpPoller timer is ready.");        
+        
         let client = self._client.as_ref()
             .expect("Couldn't access http client for HttpPoller input.");
         
         // urls
 
         // only use first url for now
-        let url = url::Url::parse(&self.urls[0])
-            .expect("Couldn't parse URI in HttpPoller input config.");
+        let url = &self.urls[0];
         
-        let mut req = client.request(http::Method::GET, url);
-
+        let mut req = client.request(http::Method::GET, url.to_owned());
+        
         // user and password
         if let (Some(user), pass) = (self.user.to_owned(), self.password.to_owned()) {
             req = req.basic_auth(user, pass);
         }
 
         debug!("Sending http request.");
-        
+
         let res = req.send()
             .expect("Couldn't send HttpPoller input request.")
             .json()
@@ -84,7 +82,7 @@ pub struct HttpPoller {
     truststore: Option<&'static Path>,
     truststore_password: Option<String>,
     truststore_type: String,
-    urls: Vec<String>,
+    urls: Vec<Url>,
     validate_after_inactivity: Option<u64>,
     _client: Option<Client>,
     pub _sender: Option<Sender<Value>>,
@@ -145,14 +143,14 @@ impl TryFrom<&toml::Value> for HttpPoller {
 
                         for (key, value) in url.iter() {
                             if let Some(url) = value.as_str() {
-                                poller.urls.push(url.to_string());
+                                poller.urls.push(Url::parse(url).expect("Can't parse HttpPoller input config URL."));
                             }
                             if let Some(url) = value.as_table() {
                                 let url = url.get("url")
                                     .expect("Missing required URL field.")
                                     .as_str()
                                     .expect("Couldn't parse HttpPoller url as string.");
-                                poller.urls.push(url.to_string());
+                                poller.urls.push(Url::parse(url).expect("Can't parse HttpPoller input config URL."));
                             }
                         }
                         
