@@ -33,9 +33,11 @@ impl Mutate {
             if let Some((split_field, split_at)) = self.split {
                 split(&mut input_copy, &split_field, &split_at);
             }
+
+            if let Some(capitalize_fields) = self.capitalize {
+                capitalize(&mut input_copy, capitalize_fields);
+            }
             
-            // split(&mut input_copy, "body", "\n");
-            // capitalize(&mut input_copy, vec!["titleCopy"]);
             // join(&mut input_copy, "body", " ; ");
             
             Ok(input_copy)
@@ -154,7 +156,7 @@ fn uppercase(message: &mut Value, fields: Vec<&str>) {
     }
 }
 
-fn capitalize(message: &mut Value, fields: Vec<&str>) {
+fn capitalize(message: &mut Value, fields: Vec<String>) {
     for field in fields {
         if let Some(val) = message.get_mut(field) {
             if let Some(str_val) = val.as_str() {
@@ -254,6 +256,15 @@ impl TryFrom<&toml::Value> for Mutate {
             }
         }
 
+        if let Some(capitalize_fields) = toml.get("capitalize") {
+            let capitalize_fields = capitalize_fields.as_array()
+                .expect("Couldn't parse Mutate capitalize field as array.");
+            let capitalize_fields = capitalize_fields.iter()
+                .map(|v| v.as_str().expect("Can't parse Mutate capitalize fields as strings.").to_string())
+                .collect();
+            mutate.capitalize = Some(capitalize_fields);
+        }
+        
         Ok(mutate)
         
     }
