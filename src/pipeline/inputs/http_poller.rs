@@ -14,15 +14,13 @@ impl Stream for HttpPoller {
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-        
+
         debug!("Polled HttpPoller input.");
 
         // schedule
-        try_ready!(self.schedule.poll().map_err(|_| ()));
-        // std::thread::sleep(Duration::from_secs(1));
-
-        debug!("HttpPoller timer is ready.");
-
+        try_ready!(self.schedule.poll().map_err(|e| panic!("HttpPoller timer failed: {:#?}", e)));
+        debug!("HttpPoller timer is ready.");        
+        
         let client = self._client.as_ref()
             .expect("Couldn't access http client for HttpPoller input.");
         
@@ -33,14 +31,13 @@ impl Stream for HttpPoller {
             .expect("Couldn't parse URI in HttpPoller input config.");
         
         let mut req = client.request(http::Method::GET, url);
-
+        
         // user and password
         if let (Some(user), pass) = (self.user.to_owned(), self.password.to_owned()) {
             req = req.basic_auth(user, pass);
         }
 
         debug!("Sending http request.");
-        
         let res = req.send()
             .expect("Couldn't send HttpPoller input request.")
             .json()
