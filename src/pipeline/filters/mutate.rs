@@ -29,6 +29,7 @@ impl Mutate {
             strip(&mut input_copy, vec!["message"]);
             split(&mut input_copy, "body", "\n");
             capitalize(&mut input_copy, vec!["titleCopy"]);
+            join(&mut input_copy, "body", " ; ");
             
             Ok(input_copy)
                 
@@ -47,15 +48,28 @@ fn copy(message: &mut Value, src: &str, dest: &str) {
 
 // }
 
-// fn join(message: &mut Value, field: &str, seperator: &str) {
-//     if let Some(val) = message.get_mut(field) {
-//         if val.is_array() {
-//             let array = val.as_array().unwrap();
-//             let joined = array.join(seperator);
-//             *val = Value::String(joined);
-//         }
-//     }
-// }
+fn join(message: &mut Value, field: &str, seperator: &str) {
+    if let Some(val) = message.get_mut(field) {
+        if let Some(array) = val.as_array() {
+
+            let mut joined = String::new();
+            
+            for (i, item) in array.iter().enumerate() {
+                if let Some(string) = item.as_str() {
+                    if i < array.len() - 1 {
+                        joined.push_str(string);
+                        joined.push_str(seperator);
+                    } else {
+                        joined.push_str(string);
+                    }
+                }
+            }
+            
+            *val = Value::String(joined);
+
+        }
+    }
+}
 
 fn lowercase(message: &mut Value, fields: Vec<&str>) {
     for field in fields {
