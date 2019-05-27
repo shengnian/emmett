@@ -37,6 +37,10 @@ test1 = "https://jsonplaceholder.typicode.com/posts/1"
 [filters.mutate]
 replace = { "id" = "yo dawg" }
 copy = { "title" = "titleCopy" }
+strip = ["body"]
+split = { "body" = "\n" }
+capitalize = ["title"]
+join = { "body" = " ... "}
 
 # [filters.grok]
 # match = { message = "%{COMBINEDAPACHELOG}" }

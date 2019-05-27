@@ -26,10 +26,17 @@ impl Mutate {
                 }
             }
             
-            strip(&mut input_copy, vec!["message"]);
-            split(&mut input_copy, "body", "\n");
-            capitalize(&mut input_copy, vec!["titleCopy"]);
-            join(&mut input_copy, "body", " ; ");
+            if let Some(strip_fields) = self.strip {
+                strip(&mut input_copy, strip_fields);
+            }
+
+            if let Some((split_field, split_at)) = self.split {
+                split(&mut input_copy, &split_field, &split_at);
+            }
+            
+            // split(&mut input_copy, "body", "\n");
+            // capitalize(&mut input_copy, vec!["titleCopy"]);
+            // join(&mut input_copy, "body", " ; ");
             
             Ok(input_copy)
                 
@@ -118,7 +125,7 @@ fn split(message: &mut Value, field: &str, separator: &str) {
     }
 }
 
-fn strip(message: &mut Value, fields: Vec<&str>) {
+fn strip(message: &mut Value, fields: Vec<String>) {
     for field in fields {
         if let Some(val) = message.get_mut(field) {
             if let Some(str_val) = val.as_str() {
@@ -156,7 +163,7 @@ fn capitalize(message: &mut Value, fields: Vec<&str>) {
 
                 for (i, char) in str_val.chars().enumerate() {
                     if i == 0 {
-                        capitalized.push(dbg!(char.to_ascii_uppercase()));
+                        capitalized.push(char.to_ascii_uppercase());
                     } else {
                         capitalized.push(char);
                     }
@@ -169,8 +176,6 @@ fn capitalize(message: &mut Value, fields: Vec<&str>) {
     }
 }
 
-
-
 #[derive(Debug, Clone)]
 pub struct Mutate {
     convert: Option<Value>,
@@ -182,7 +187,7 @@ pub struct Mutate {
     coerce: Option<String>,
     rename: Option<String>,
     replace: Option<Table>,
-    split: Option<String>,
+    split: Option<(String, String)>,
     strip: Option<Vec<String>>,
     update: Option<String>,
     uppercase: Option<Vec<String>>,
@@ -229,6 +234,24 @@ impl TryFrom<&toml::Value> for Mutate {
             let copy = copy.as_table()
                 .expect("Couldn't parse Mutate copy field as table.");
             mutate.copy = Some(copy.to_owned());
+        }
+        
+        if let Some(strip_fields) = toml.get("strip") {
+            let strip_fields = strip_fields.as_array()
+                .expect("Couldn't parse Mutate strip field as array.");
+            let strip_fields = strip_fields.iter()
+                .map(|v| v.as_str().expect("Can't parse Mutate strip fields as strings.").to_string())
+                .collect();
+            mutate.strip = Some(strip_fields);
+        }
+        
+        if let Some(split_setting) = toml.get("split") {
+            let split_setting = split_setting.as_table()
+                .expect("Couldn't parse Mutate split field as table.");
+            for (field, value) in split_setting.iter().take(1) {
+                let value = value.as_str().expect("Can't parse Mutate filter split setting as string.");
+                mutate.split = Some((field.to_string(), value.to_string()));
+            }
         }
 
         Ok(mutate)
