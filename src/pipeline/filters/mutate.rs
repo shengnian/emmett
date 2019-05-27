@@ -28,7 +28,7 @@ impl Mutate {
             
             strip(&mut input_copy, vec!["message"]);
             split(&mut input_copy, "body", "\n");
-            // capitalize(&mut input_copy, vec!["title"]);
+            capitalize(&mut input_copy, vec!["titleCopy"]);
             
             Ok(input_copy)
                 
@@ -136,19 +136,19 @@ fn uppercase(message: &mut Value, fields: Vec<&str>) {
 fn capitalize(message: &mut Value, fields: Vec<&str>) {
     for field in fields {
         if let Some(val) = message.get_mut(field) {
-            if let Some(mut str_val) = val.as_str() {
+            if let Some(str_val) = val.as_str() {
 
                 let mut capitalized = String::new();
 
                 for (i, char) in str_val.chars().enumerate() {
                     if i == 0 {
-                        capitalized.push(char.to_ascii_uppercase());
+                        capitalized.push(dbg!(char.to_ascii_uppercase()));
                     } else {
                         capitalized.push(char);
                     }
                 }
 
-                str_val = &capitalized;
+                *val = json!(capitalized);
                 
             }
         }
