@@ -92,7 +92,7 @@ impl InputPlugin for (&String, &toml::Value) {
             let plugin = HttpPoller::try_from(self.1).unwrap();
             return Input::HttpPoller(plugin, None)
         };
-        panic!("Bad Input config.");
+        panic!("Bad configuration for {} input block.", self.0);
     }
 }
 
@@ -107,6 +107,11 @@ impl FilterPlugin for (&String, &toml::Value) {
                 .expect("Incorrect Mutate filter config.");
             return Filter::Mutate(plugin)
         };
-        panic!("Bad Filter config.");
+        // if self.0 == "json" {
+        //     let plugin = Json::try_from(self.1)
+        //         .expect("Incorrect Json filter config.");
+        //     return Filter::Json(plugin)
+        // };
+        panic!("Bad configuration for {} filter block.", self.0);
     }
 }

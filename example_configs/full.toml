@@ -39,8 +39,11 @@ replace = { "id" = "yo dawg" }
 copy = { "title" = "titleCopy" }
 strip = ["body"]
 split = { "body" = "\n" }
-capitalize = ["title"]
+capitalize = ["titleCopy"]
 join = { "body" = " ... "}
+
+# [filters.json]
+# target = "jsonString"
 
 # [filters.grok]
 # match = { message = "%{COMBINEDAPACHELOG}" }
@@ -50,8 +53,8 @@ join = { "body" = " ... "}
 
 [[outputs]]
 
-[outputs.stdout]
-codec = "rubydebug"
+# [outputs.stdout]
+# codec = "rubydebug"
 
-[outputs.elasticsearch]
-hosts = ["localhost:9200"]
+# [outputs.elasticsearch]
+# hosts = ["localhost:9200"]
