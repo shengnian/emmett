@@ -8,41 +8,39 @@ use std::convert::TryFrom;
 use toml::value::Table;
 
 impl Mutate {
-    pub fn process(self, input: Value) -> impl Future<Item=Value, Error=()> {
-        futures::future::lazy(move || {
+    pub fn process(self, input: Value) -> Result<Value, ()> {
 
-            let mut input_copy = input.clone();
-            
-            if let Some(rep) = self.replace {
-                for (key, value) in rep.iter() {
-                    replace(&mut input_copy, key, json!(value));
-                }
+        let mut input_copy = input.clone();
+        
+        if let Some(rep) = self.replace {
+            for (key, value) in rep.iter() {
+                replace(&mut input_copy, key, json!(value));
             }
+        }
 
-            if let Some(cop) = self.copy {
-                for (key, value) in cop.iter() {
-                    let value = value.as_str().unwrap();
-                    copy(&mut input_copy, key, value);
-                }
+        if let Some(cop) = self.copy {
+            for (key, value) in cop.iter() {
+                let value = value.as_str().unwrap();
+                copy(&mut input_copy, key, value);
             }
-            
-            if let Some(strip_fields) = self.strip {
-                strip(&mut input_copy, strip_fields);
-            }
+        }
+        
+        if let Some(strip_fields) = self.strip {
+            strip(&mut input_copy, strip_fields);
+        }
 
-            if let Some((split_field, split_at)) = self.split {
-                split(&mut input_copy, &split_field, &split_at);
-            }
+        if let Some((split_field, split_at)) = self.split {
+            split(&mut input_copy, &split_field, &split_at);
+        }
 
-            if let Some(capitalize_fields) = self.capitalize {
-                capitalize(&mut input_copy, capitalize_fields);
-            }
-            
-            // join(&mut input_copy, "body", " ; ");
-            
-            Ok(input_copy)
+        if let Some(capitalize_fields) = self.capitalize {
+            capitalize(&mut input_copy, capitalize_fields);
+        }
+        
+        // join(&mut input_copy, "body", " ; ");
+        
+        Ok(input_copy)
                 
-        })
     }
 }
 
