@@ -42,8 +42,8 @@ split = { "body" = "\n" }
 capitalize = ["titleCopy"]
 join = { "body" = " ... "}
 
-# [filters.json]
-# target = "jsonString"
+[filters.json]
+source = "jsonString"
 
 # [filters.grok]
 # match = { message = "%{COMBINEDAPACHELOG}" }

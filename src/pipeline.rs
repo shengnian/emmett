@@ -72,6 +72,8 @@ impl Pipeline {
             }
         }
 
+        // dbg!(&filters.0);
+        
         Pipeline(inputs, filters, outputs)
         
     }
@@ -107,11 +109,11 @@ impl FilterPlugin for (&String, &toml::Value) {
                 .expect("Incorrect Mutate filter config.");
             return Filter::Mutate(plugin)
         };
-        // if self.0 == "json" {
-        //     let plugin = Json::try_from(self.1)
-        //         .expect("Incorrect Json filter config.");
-        //     return Filter::Json(plugin)
-        // };
+        if self.0 == "json" {
+            let plugin = Json::try_from(self.1)
+                .expect("Incorrect Json filter config.");
+            return Filter::Json(plugin)
+        };
         panic!("Bad configuration for {} filter block.", self.0);
     }
 }

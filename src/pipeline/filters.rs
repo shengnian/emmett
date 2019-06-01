@@ -9,7 +9,7 @@ pub struct FilterBlock(pub Vec<Filter>);
 #[derive(Debug, Clone)]
 pub enum Filter {
     // Geoip(geoip::Geoip<'static>),
-    // Json(json::Json),
+    Json(json::Json),
     Mutate(mutate::Mutate),
     // Clone(clone::Clone),
     // Fingerprint(fingerprint::Fingerprint<'static>),
@@ -24,12 +24,14 @@ impl FilterBlock {
 
             debug!("FilterBlock received a message.");
 
-            stream::iter_ok::<_, ()>(self.0.to_owned())
+            let stream = stream::iter_ok::<_, ()>(self.0.to_owned())
                 .fold(message, |acc, curr| {
-                    match curr {
-                        // Filter::Json(mut p) => p.process(acc),
-                        Filter::Mutate(mut p) => p.process(acc)
-                    }
+                    lazy(|| {
+                        match curr {
+                            Filter::Json(mut p) => p.process(acc),
+                            Filter::Mutate(mut p) => p.process(acc)
+                        }
+                    })
                 }).and_then(|message| {
                     debug!("FilterBlock preparing to send a message.");
                     filter_sender.clone().send(message).map_err(|_| ())
