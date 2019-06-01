@@ -44,6 +44,7 @@ join = { "body" = " ... "}
 
 [filters.json]
 source = "jsonString"
+target = "jsonString"
 
 # [filters.grok]
 # match = { message = "%{COMBINEDAPACHELOG}" }
