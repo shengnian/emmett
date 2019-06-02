@@ -19,7 +19,7 @@ impl FilterBlock {
     pub fn run(self, receiver: Receiver<Value>) -> Receiver<Value> {
 
         let (filter_sender, output_receiver) = channel(1_024);
-        
+
         let filter_stream = receiver.for_each(move |message| {
 
             debug!("FilterBlock received a message.");
@@ -28,15 +28,18 @@ impl FilterBlock {
                 .fold(message, |acc, curr| {
                     lazy(|| {
                         match curr {
-                            Filter::Json(mut p) => p.process(acc),
-                            Filter::Mutate(mut p) => p.process(acc)
+                            Filter::Json(p) => p.process(acc),
+                            Filter::Mutate(p) => p.process(acc)
                         }
                     })
                 }).and_then(|message| {
                     debug!("FilterBlock preparing to send a message.");
                     filter_sender.clone().send(message).map_err(|_| ())
                     // debug!("FilterBlock sent a message.");
-                }).poll();
+                })
+                .map(|_| ());
+
+            tokio::spawn(stream);
 
             Ok(())
                 
