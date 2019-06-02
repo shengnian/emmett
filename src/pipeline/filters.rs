@@ -24,6 +24,8 @@ impl FilterBlock {
 
             debug!("FilterBlock received a message.");
 
+            let filter_sender = filter_sender.clone();
+
             let stream = stream::iter_ok::<_, ()>(self.0.to_owned())
                 .fold(message, |acc, curr| {
                     lazy(|| {
@@ -32,12 +34,12 @@ impl FilterBlock {
                             Filter::Mutate(p) => p.process(acc)
                         }
                     })
-                }).and_then(|message| {
+                }).and_then(move |message| {
                     debug!("FilterBlock preparing to send a message.");
-                    filter_sender.clone().send(message).map_err(|_| ())
+                    filter_sender.send(message).map_err(|_| ());
                     // debug!("FilterBlock sent a message.");
-                })
-                .map(|_| ());
+                    Ok(())
+                });
 
             tokio::spawn(stream);
 
