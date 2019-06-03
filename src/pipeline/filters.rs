@@ -36,7 +36,7 @@ impl FilterBlock {
                     })
                 }).and_then(move |message| {
                     debug!("FilterBlock preparing to send a message.");
-                    filter_sender.send(message).map_err(|_| ());
+                    filter_sender.send(message).map_err(|_| ()).poll();
                     // debug!("FilterBlock sent a message.");
                     Ok(())
                 });
