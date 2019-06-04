@@ -1,8 +1,6 @@
 #![allow(unused)]
 
 // Specification: https://www.elastic.co/guide/en/logstash/current/plugins-outputs-csv.html
-
-use super::CommonOptions;
 use std::collections::HashMap;
 use std::path::Path;
 
@@ -17,7 +15,6 @@ pub struct CsvOutput {
     gzip: Option<bool>,
     path: Option<&'static Path>,
     spreadsheet_safe: Option<bool>,
-    _common: CommonOptions<'static>,
 }
 
 impl CsvOutput {
@@ -33,7 +30,6 @@ impl CsvOutput {
             gzip: Some(false),
             path: None,
             spreadsheet_safe: Some(true),
-            _common: CommonOptions::default(),
         }
     }
 }

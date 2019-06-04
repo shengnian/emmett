@@ -1,8 +1,7 @@
 #![allow(unused)]
 
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-outputs-stdout.html
-use super::CommonOptions;
-use crossbeam_channel::Receiver;
+use crossbeam::Receiver;
 use futures::{Async, Poll, Stream};
 use serde_json::{json, value::Value};
 
@@ -28,7 +27,6 @@ pub struct Stdout {
     codec: Option<&'static str>,
     enable_metric: Option<bool>,
     id: Option<&'static str>,
-    _common: CommonOptions<'static>,
     pub _receiver: Option<Receiver<Value>>,
 }
 
@@ -46,7 +44,6 @@ impl Default for Stdout {
             codec: None,
             enable_metric: None,
             id: None,
-            _common: CommonOptions::default(),
             _receiver: None,
         }
     }

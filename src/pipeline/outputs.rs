@@ -1,6 +1,6 @@
 #![allow(unused)]
 
-use crossbeam_channel::unbounded;
+use crossbeam::unbounded;
 use futures::{sync::mpsc::Receiver, Future, Poll, Stream, Async, try_ready, lazy};
 use serde_json::Value;
 
@@ -60,23 +60,6 @@ impl Future for Output {
         
         Ok(Async::Ready(()))
             
-    }
-}
-
-#[derive(Debug)]
-pub struct CommonOptions<'a> {
-    codec: Option<&'a str>,
-    enable_metric: Option<bool>,
-    id: Option<&'a str>,
-}
-
-impl<'a> Default for CommonOptions<'a> {
-    fn default() -> Self {
-        Self {
-            codec: Some("plain"),
-            enable_metric: Some(true),
-            id: None,
-        }
     }
 }
 
