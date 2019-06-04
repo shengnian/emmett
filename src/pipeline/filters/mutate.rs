@@ -1,9 +1,5 @@
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-filters-mutate.html
-use futures::{
-    sync::mpsc::{Receiver, Sender},
-    try_ready, Async, Future, Poll, Sink, Stream,
-};
-use serde_json::{json, value::Value};
+use serde_json::{value::Value, json};
 use std::convert::TryFrom;
 use toml::value::Table;
 
@@ -55,50 +51,50 @@ fn copy(message: &mut Value, src: &str, dest: &str) {
 
 // }
 
-fn join(message: &mut Value, field: &str, seperator: &str) {
-    if let Some(val) = message.get_mut(field) {
-        if let Some(array) = val.as_array() {
+// fn join(message: &mut Value, field: &str, seperator: &str) {
+//     if let Some(val) = message.get_mut(field) {
+//         if let Some(array) = val.as_array() {
 
-            let mut joined = String::new();
+//             let mut joined = String::new();
             
-            for (i, item) in array.iter().enumerate() {
-                if let Some(string) = item.as_str() {
-                    if i < array.len() - 1 {
-                        joined.push_str(string);
-                        joined.push_str(seperator);
-                    } else {
-                        joined.push_str(string);
-                    }
-                }
-            }
+//             for (i, item) in array.iter().enumerate() {
+//                 if let Some(string) = item.as_str() {
+//                     if i < array.len() - 1 {
+//                         joined.push_str(string);
+//                         joined.push_str(seperator);
+//                     } else {
+//                         joined.push_str(string);
+//                     }
+//                 }
+//             }
             
-            *val = Value::String(joined);
+//             *val = Value::String(joined);
 
-        }
-    }
-}
+//         }
+//     }
+// }
 
-fn lowercase(message: &mut Value, fields: Vec<&str>) {
-    for field in fields {
-        if let Some(val) = message.get_mut(field) {
-            if val.is_string() {
-                let lowercase = val
-                    .as_str()
-                    .expect("Mutate filter couldn't convert string to lowercase. ")
-                    .to_lowercase();
-                *val = Value::String(lowercase);
-            }
-        }
-    }
-}
+// fn lowercase(message: &mut Value, fields: Vec<&str>) {
+//     for field in fields {
+//         if let Some(val) = message.get_mut(field) {
+//             if val.is_string() {
+//                 let lowercase = val
+//                     .as_str()
+//                     .expect("Mutate filter couldn't convert string to lowercase. ")
+//                     .to_lowercase();
+//                 *val = Value::String(lowercase);
+//             }
+//         }
+//     }
+// }
 
-fn coerce(message: &mut Value, field: &str, new_val: Value) {
-    if let Some(val) = message.get_mut(field) {
-        if val.is_null() {
-            *val = new_val;
-        }
-    }
-}
+// fn coerce(message: &mut Value, field: &str, new_val: Value) {
+//     if let Some(val) = message.get_mut(field) {
+//         if val.is_null() {
+//             *val = new_val;
+//         }
+//     }
+// }
 
 // // what happens if other field already exists?
 // fn rename(message: &mut Value, field: &str, new_name: &str) {
@@ -136,23 +132,23 @@ fn strip(message: &mut Value, fields: Vec<String>) {
     }
 }
 
-fn update(message: &mut Value, field: &str, new_val: &str) {
-    if let Some(val) = message.get_mut(field) {
-        // what about non-string values?
-        *val = Value::String(new_val.to_string());
-    }
-}
+// fn update(message: &mut Value, field: &str, new_val: &str) {
+//     if let Some(val) = message.get_mut(field) {
+//         // what about non-string values?
+//         *val = Value::String(new_val.to_string());
+//     }
+// }
 
-fn uppercase(message: &mut Value, fields: Vec<&str>) {
-    for field in fields {
-        if let Some(val) = message.get_mut(field) {
-            if let Some(str_val) = val.as_str() {
-                let uppercase = str_val.to_uppercase();
-                *val = Value::String(uppercase);
-            }
-        }
-    }
-}
+// fn uppercase(message: &mut Value, fields: Vec<&str>) {
+//     for field in fields {
+//         if let Some(val) = message.get_mut(field) {
+//             if let Some(str_val) = val.as_str() {
+//                 let uppercase = str_val.to_uppercase();
+//                 *val = Value::String(uppercase);
+//             }
+//         }
+//     }
+// }
 
 fn capitalize(message: &mut Value, fields: Vec<String>) {
     for field in fields {

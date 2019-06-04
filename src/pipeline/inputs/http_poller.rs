@@ -1,5 +1,5 @@
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-http_poller.html
-use futures::{stream::iter_ok, sync::mpsc::UnboundedSender, try_ready, Future, Async, Poll, Stream};
+use futures::{sync::mpsc::UnboundedSender, try_ready, Async, Poll, Stream};
 use reqwest::{Certificate, Client, Proxy, RedirectPolicy};
 use serde_json::value::Value;
 use std::fs::File;

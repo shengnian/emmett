@@ -1,9 +1,6 @@
-#![allow(unused)]
-
 use crossbeam::unbounded;
 use futures::{sync::mpsc::UnboundedReceiver, Future, Poll, Stream, Async, try_ready, lazy, Sink};
 use serde_json::Value;
-use futures::sync::mpsc::channel;
 
 pub struct OutputBlock(pub Vec<Output>);
 
@@ -57,10 +54,9 @@ impl Future for Output {
                 Output::Stdout(p) => p.poll(),
             };
 
-            let value = match try_ready!(poll.map_err(|_| ())) {
-                Some(value) => value,
-                None => break
-            };
+            if try_ready!(poll.map_err(|_| ())) == None {
+                break
+            }
             
         }
         

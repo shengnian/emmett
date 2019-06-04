@@ -1,50 +1,29 @@
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-filters-geoip.html
-use futures::{
-    sync::mpsc::{Receiver, Sender},
-    try_ready, Async, Future, Poll, Sink, Stream,
-};
 use reqwest::{Client, RedirectPolicy};
 use serde_json::{json, value::Value};
 use std::path::Path;
 
-impl<'a> Stream for Geoip<'a> {
-    type Item = Value;
-    type Error = ();
+impl<'a> Geoip<'a> {
+    pub fn process(self, input: Value) -> Result<Value, ()> {
+        // let source = self.source;
+        // let target = self.target.unwrap();
 
-    fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-        let source = self.source;
-        let target = self.target.unwrap();
+        if let Some(source) = input.get(&self.source) {
+            let source = source
+                .as_str()
+                .expect("Couldn't parse Geoip source as string.");
 
-        if let Some(ref mut receiver) = &mut self._receiver {
-            let mut process = receiver.by_ref().map(|input_message| {
-                if let Some(source) = input_message.get(source) {
-                    let source = source
-                        .as_str()
-                        .expect("Couldn't parse Geoip source as string.");
+            let value = match ip_api(source) {
+                Ok(v) => v,
+                Err(e) => panic!("{}", e),
+            };
 
-                    let value = match ip_api(source) {
-                        Ok(v) => v,
-                        Err(e) => panic!("{}", e),
-                    };
-
-                    let output_message = json!({ target: value });
-                    output_message
-                } else {
-                    input_message
-                }
-            });
-
-            if let Some(message) = try_ready!(process.poll()) {
-                if let Some(sender) = self._sender.to_owned() {
-                    let mut send = sender.send(message);
-                    try_ready!(send.poll().map_err(|_| ()));
-                }
-            }
-
-            Ok(Async::Ready(None))
+            let output_message = json!({ self.target: value });
+            Ok(output_message)
         } else {
-            panic!("No receiver found for Geoip.");
+            Ok(input)
         }
+            
     }
 }
 
@@ -53,21 +32,10 @@ pub struct Geoip<'a> {
     cache_size: Option<u64>,
     database: Option<&'a Path>,
     default_database_type: Option<&'a str>,
-    fields: Option<Vec<&'a str>>,
-    source: &'a str,
-    tag_on_failure: Option<Vec<&'a str>>,
-    target: Option<&'a str>,
-    pub _receiver: Option<Receiver<Value>>,
-    pub _sender: Option<Sender<Value>>,
-}
-
-impl<'a> Geoip<'a> {
-    pub fn new(source: &'a str) -> Self {
-        Self {
-            source,
-            ..Default::default()
-        }
-    }
+    fields: Option<Vec<String>>,
+    source: String,
+    tag_on_failure: Option<Vec<String>>,
+    target: String,
 }
 
 impl<'a> Default for Geoip<'a> {
@@ -77,11 +45,9 @@ impl<'a> Default for Geoip<'a> {
             database: None,
             default_database_type: Some("City"),
             fields: None,
-            source: "",
-            tag_on_failure: Some(vec!["_geoip_lookup_failure"]),
-            target: Some("geoip"),
-            _receiver: None,
-            _sender: None,
+            source: "".to_string(),
+            tag_on_failure: Some(vec!["_geoip_lookup_failure".to_string()]),
+            target: "geoip".to_string(),
         }
     }
 }

@@ -1,9 +1,6 @@
-#![allow(unused)]
-
 use futures::sync::mpsc::{unbounded, UnboundedReceiver, UnboundedSender};
 use futures::{try_ready, Future, Poll, Sink, Stream, Async};
 use serde_json::Value;
-use std::collections::HashMap;
 
 #[derive(Debug)]
 pub enum Input {

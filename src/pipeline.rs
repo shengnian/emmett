@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 mod inputs;
 mod filters;
 mod outputs;
@@ -11,8 +9,6 @@ use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 use std::convert::TryFrom;
-
-use futures::{sync::mpsc};
 
 pub struct Pipeline(pub InputBlock, pub FilterBlock, pub OutputBlock);
 
@@ -32,7 +28,7 @@ impl Pipeline {
         // blocks
         let mut inputs = InputBlock(vec![]);
         let mut filters = FilterBlock(vec![]);
-        let mut outputs = OutputBlock(vec![stdout]);
+        let outputs = OutputBlock(vec![stdout]);
 
         // read pipeline config
         let mut config_file = File::open(path)

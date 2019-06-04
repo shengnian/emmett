@@ -1,6 +1,6 @@
 use futures::{
-    sync::mpsc::{unbounded, UnboundedReceiver, UnboundedSender},
-    Future, Poll, Sink, Stream, Async, try_ready, stream, lazy
+    sync::mpsc::{unbounded, UnboundedReceiver},
+    Future, Sink, Stream, stream, lazy
 };
 use serde_json::Value;
 
@@ -29,12 +29,11 @@ impl FilterBlock {
                     lazy(|| {
                         match curr {
                             Filter::Json(p) => p.process(acc),
-                            Filter::Mutate(p) => p.process(acc),
-                            _ => panic!("")
+                            Filter::Mutate(p) => p.process(acc)
                         }
                     })
                 }).and_then(move |message| {
-                    filter_sender.send(message).map_err(|_| ()).poll();
+                    filter_sender.send(message).map_err(|_| ()).poll().expect("Couldn't send message from FilterBlock.");
                     Ok(())
                 });
 
