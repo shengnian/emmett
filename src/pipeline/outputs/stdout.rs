@@ -10,23 +10,24 @@ impl Stream for Stdout {
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-        if let Some(receiver) = &self._receiver {
-            if let Ok(message) = receiver.recv() {
-                debug!("Stdout output plugin received a message.");
-                println!("{:#}", message);
-            }
-            Ok(Async::Ready(None))
-        } else {
-            panic!("No receiver found for Stdout output.")
-        }
+
+        let receiver = self._receiver.clone()
+            .expect("No receiver found for Stdout output plugin.");
+
+        if let Ok(message) = receiver.recv() {
+            println!("{:#}", message);
+        };
+        
+        Ok(Async::Ready(None))
+
     }
 }
 
 #[derive(Debug)]
 pub struct Stdout {
-    codec: Option<&'static str>,
+    codec: Option<String>,
     enable_metric: Option<bool>,
-    id: Option<&'static str>,
+    id: Option<String>,
     pub _receiver: Option<Receiver<Value>>,
 }
 

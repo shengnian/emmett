@@ -1,7 +1,7 @@
 #![allow(unused)]
 
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-generator.html
-use futures::{sync::mpsc::Sender, Async, Poll, Stream, try_ready};
+use futures::{sync::mpsc::UnboundedSender, Async, Poll, Stream, try_ready};
 use serde_json::{json, value::Value};
 use std::thread::sleep;
 use std::time::Duration;
@@ -39,7 +39,7 @@ pub struct Generator {
     lines: Option<Vec<String>>,
     message: String,
     threads: u32,
-    pub _sender: Option<Sender<Value>>,
+    pub _sender: Option<UnboundedSender<Value>>,
     _interval: Interval
 }
 

@@ -1,5 +1,5 @@
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-exec.html
-use futures::{sync::mpsc::Sender, try_ready, Async, Future, Poll, Stream};
+use futures::{sync::mpsc::UnboundedSender, try_ready, Async, Future, Poll, Stream};
 use serde_json::{json, value::Value};
 use std::process::Command;
 use std::time::Duration;
@@ -37,7 +37,7 @@ pub struct Exec {
     command: String,
     interval: Interval,
     schedule: Option<String>,
-    pub _sender: Option<Sender<Value>>,
+    pub _sender: Option<UnboundedSender<Value>>,
 }
 
 impl Default for Exec {

@@ -1,8 +1,9 @@
 #![allow(unused)]
 
 use crossbeam::unbounded;
-use futures::{sync::mpsc::Receiver, Future, Poll, Stream, Async, try_ready, lazy};
+use futures::{sync::mpsc::UnboundedReceiver, Future, Poll, Stream, Async, try_ready, lazy, Sink};
 use serde_json::Value;
+use futures::sync::mpsc::channel;
 
 pub struct OutputBlock(pub Vec<Output>);
 
@@ -12,7 +13,7 @@ pub enum Output {
 }
 
 impl OutputBlock {
-    pub fn run(mut self, outputs_receiver: Receiver<Value>) {
+    pub fn run(mut self, outputs_receiver: UnboundedReceiver<Value>) {
         // use crossbeam_channel to account for spmc instead of mpsc
         let (s, r) = unbounded();
 
@@ -30,8 +31,13 @@ impl OutputBlock {
 
         // for every message sent to the `output` block, send to each output separately
         let broadcast = outputs_receiver.for_each(move |message| {
-            debug!("OutputBlock received a message.");
-            s.send(message).expect("Something went wrong broadcasting a message to Output plugins.");
+
+            // if let Err(e) = s.send(message) {
+            //     eprintln!("{}", e);
+            // }
+            
+            println!("{:#}", message);
+            
             Ok(())
         });
 
@@ -44,7 +50,7 @@ impl Future for Output {
     type Item = ();
     type Error = ();
 
-    fn poll(&mut self) -> Poll<(), Self::Error> {
+    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
         loop {
 
             let poll = match self {
