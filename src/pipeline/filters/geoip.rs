@@ -5,8 +5,6 @@ use std::path::Path;
 
 impl<'a> Geoip<'a> {
     pub fn process(self, input: Value) -> Result<Value, ()> {
-        // let source = self.source;
-        // let target = self.target.unwrap();
 
         if let Some(source) = input.get(&self.source) {
             let source = source
