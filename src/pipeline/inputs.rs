@@ -1,7 +1,7 @@
 #![allow(unused)]
 
 use futures::sync::mpsc::{channel, Receiver, Sender};
-use futures::{try_ready, Future, Poll, Sink, Stream};
+use futures::{try_ready, Future, Poll, Sink, Stream, Async};
 use serde_json::Value;
 use std::collections::HashMap;
 
@@ -29,22 +29,26 @@ impl Future for Input {
                 Input::S3(p, _) => p.poll(),
             };
 
-            if let Some(message) = try_ready!(poll) {
+            let value = match try_ready!(poll) {
+                Some(value) => value,
+                None => break
+            };
+            
+            debug!("Received message from Input plugin.");
 
-                debug!("Received message from Input plugin.");
-
-                if let Some(sender) = match self {
-                    Input::Exec(_, s) => s,
-                    Input::Generator(_, s) => s,
-                    Input::HttpPoller(_, s) => s,
-                    Input::S3(_, s) => s,
-                } {
-                    try_ready!(sender.send(message).poll().map_err(|_| ()));
-                }
-                
+            if let Some(sender) = match self {
+                Input::Exec(_, s) => s,
+                Input::Generator(_, s) => s,
+                Input::HttpPoller(_, s) => s,
+                Input::S3(_, s) => s,
+            } {
+                sender.send(value).poll().map_err(|_| ());
             }
             
         }
+        
+        Ok(Async::Ready(()))
+            
     }
 }
 

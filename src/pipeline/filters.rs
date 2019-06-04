@@ -31,7 +31,8 @@ impl FilterBlock {
                     lazy(|| {
                         match curr {
                             Filter::Json(p) => p.process(acc),
-                            Filter::Mutate(p) => p.process(acc)
+                            Filter::Mutate(p) => p.process(acc),
+                            _ => panic!("")
                         }
                     })
                 }).and_then(move |message| {
@@ -41,9 +42,7 @@ impl FilterBlock {
                     Ok(())
                 });
 
-            tokio::spawn(stream);
-
-            Ok(())
+            stream
                 
         });
 

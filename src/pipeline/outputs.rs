@@ -1,7 +1,7 @@
 #![allow(unused)]
 
 use crossbeam_channel::unbounded;
-use futures::{sync::mpsc::Receiver, Future, Poll, Stream};
+use futures::{sync::mpsc::Receiver, Future, Poll, Stream, Async, try_ready, lazy};
 use serde_json::Value;
 
 pub struct OutputBlock(pub Vec<Output>);
@@ -31,11 +31,12 @@ impl OutputBlock {
         // for every message sent to the `output` block, send to each output separately
         let broadcast = outputs_receiver.for_each(move |message| {
             debug!("OutputBlock received a message.");
-            s.send(message).unwrap();
+            s.send(message).expect("Something went wrong broadcasting a message to Output plugins.");
             Ok(())
         });
 
         tokio::spawn(broadcast);
+
     }
 }
 
@@ -45,12 +46,20 @@ impl Future for Output {
 
     fn poll(&mut self) -> Poll<(), Self::Error> {
         loop {
+
             let poll = match self {
                 Output::Stdout(p) => p.poll(),
             };
 
-            poll.expect("Something went wrong polling an output plugin.");
+            let value = match try_ready!(poll.map_err(|_| ())) {
+                Some(value) => value,
+                None => break
+            };
+            
         }
+        
+        Ok(Async::Ready(()))
+            
     }
 }
 

@@ -44,6 +44,9 @@ impl Stream for HttpPoller {
             .json()
             .expect("Couldn't parse HttpPoller input response as JSON.");
 
+        // dbg!(&res);
+        // println!("http message");
+        
         debug!("Received http response.");
         
         // metadata_target
