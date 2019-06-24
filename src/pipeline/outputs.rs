@@ -1,5 +1,4 @@
-use crossbeam::unbounded;
-use futures::{sync::mpsc::UnboundedReceiver, Future, Poll, Stream, Async, try_ready, lazy, Sink};
+use futures::{sync::mpsc::UnboundedReceiver, Stream};
 use serde_json::Value;
 
 pub struct OutputBlock(pub Vec<Output>);
@@ -10,31 +9,16 @@ pub enum Output {
 }
 
 impl OutputBlock {
-    pub fn run(mut self, outputs_receiver: UnboundedReceiver<Value>) {
-        // use crossbeam_channel to account for spmc instead of mpsc
-        let (s, r) = unbounded();
-
-        // attach a receiver to each output plugin
-        self.0.iter_mut().for_each(|output| {
-            match output {
-                Output::Stdout(ref mut p) => p._receiver = Some(r.clone()),
-            };
-        });
-
-        // run each output plugin
-        for output in self.0 {
-            tokio::spawn(output);
-        }
-
-        // for every message sent to the `output` block, send to each output separately
+    pub fn run(self, outputs_receiver: UnboundedReceiver<Value>) {
+       
         let broadcast = outputs_receiver.for_each(move |message| {
 
-            // if let Err(e) = s.send(message) {
-            //     eprintln!("{}", e);
-            // }
-            
-            println!("{:#}", message);
-            
+            self.0.iter().for_each(move |output| {
+                match output {
+                    Output::Stdout(p) => p.run(message.clone()),
+                };
+            });
+                        
             Ok(())
         });
 
@@ -43,26 +27,8 @@ impl OutputBlock {
     }
 }
 
-impl Future for Output {
-    type Item = ();
-    type Error = ();
-
-    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
-        loop {
-
-            let poll = match self {
-                Output::Stdout(p) => p.poll(),
-            };
-
-            if try_ready!(poll.map_err(|_| ())) == None {
-                break
-            }
-            
-        }
-        
-        Ok(Async::Ready(()))
-            
-    }
+trait Run {
+    fn run(&self, input: Value);
 }
 
 mod boundary;

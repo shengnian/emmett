@@ -23,7 +23,9 @@ impl Pipeline {
     pub fn from_toml(path: &Path) -> Pipeline {
 
         // outputs
-        let stdout = Output::Stdout(outputs::Stdout::new());
+        let stdout = Output::Stdout(outputs::Stdout {
+            ..Default::default()
+        });
 
         // blocks
         let mut inputs = InputBlock(vec![]);
