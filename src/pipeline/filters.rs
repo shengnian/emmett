@@ -1,6 +1,6 @@
 use futures::{
-    sync::mpsc::{channel, Receiver, Sender},
-    Future, Poll, Sink, Stream, Async, try_ready, stream, lazy
+    sync::mpsc::{unbounded, UnboundedReceiver},
+    Future, Sink, Stream, stream, lazy
 };
 use serde_json::Value;
 
@@ -16,29 +16,28 @@ pub enum Filter {
 }
 
 impl FilterBlock {
-    pub fn run(self, receiver: Receiver<Value>) -> Receiver<Value> {
+    pub fn run(self, receiver: UnboundedReceiver<Value>) -> UnboundedReceiver<Value> {
 
-        let (filter_sender, output_receiver) = channel(1_024);
-        
+        let (filter_sender, output_receiver) = unbounded();
+
         let filter_stream = receiver.for_each(move |message| {
 
-            debug!("FilterBlock received a message.");
+            let filter_sender = filter_sender.clone();
 
             let stream = stream::iter_ok::<_, ()>(self.0.to_owned())
                 .fold(message, |acc, curr| {
                     lazy(|| {
                         match curr {
-                            Filter::Json(mut p) => p.process(acc),
-                            Filter::Mutate(mut p) => p.process(acc)
+                            Filter::Json(p) => p.process(acc),
+                            Filter::Mutate(p) => p.process(acc)
                         }
                     })
-                }).and_then(|message| {
-                    debug!("FilterBlock preparing to send a message.");
-                    filter_sender.clone().send(message).map_err(|_| ())
-                    // debug!("FilterBlock sent a message.");
-                }).poll();
+                }).and_then(move |message| {
+                    filter_sender.send(message).map_err(|_| ()).poll().expect("Couldn't send message from FilterBlock.");
+                    Ok(())
+                });
 
-            Ok(())
+            stream
                 
         });
 

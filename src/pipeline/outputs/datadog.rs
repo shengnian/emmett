@@ -1,8 +1,6 @@
 #![allow(unused)]
 
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-outputs-datadog.html
-use super::CommonOptions;
-
 #[derive(Debug)]
 pub struct DatadogOutput {
     alert_type: Option<AlertType>,
@@ -13,7 +11,6 @@ pub struct DatadogOutput {
     source_type_name: Option<SourceTypeName>,
     text: Option<&'static str>,
     title: Option<&'static str>,
-    _common: CommonOptions<'static>,
 }
 
 impl Default for DatadogOutput {
@@ -27,7 +24,6 @@ impl Default for DatadogOutput {
             source_type_name: Some(SourceTypeName::MyApps),
             text: Some("message"),
             title: Some("Logstash event for host"),
-            _common: CommonOptions::default(),
         }
     }
 }

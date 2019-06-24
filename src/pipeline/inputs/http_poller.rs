@@ -1,5 +1,5 @@
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-http_poller.html
-use futures::{stream::iter_ok, sync::mpsc::Sender, try_ready, Future, Async, Poll, Stream};
+use futures::{sync::mpsc::UnboundedSender, try_ready, Async, Poll, Stream};
 use reqwest::{Certificate, Client, Proxy, RedirectPolicy};
 use serde_json::value::Value;
 use std::fs::File;
@@ -44,6 +44,9 @@ impl Stream for HttpPoller {
             .json()
             .expect("Couldn't parse HttpPoller input response as JSON.");
 
+        // dbg!(&res);
+        // println!("http message");
+        
         debug!("Received http response.");
         
         // metadata_target
@@ -85,7 +88,7 @@ pub struct HttpPoller {
     urls: Vec<Url>,
     validate_after_inactivity: Option<u64>,
     _client: Option<Client>,
-    pub _sender: Option<Sender<Value>>,
+    pub _sender: Option<UnboundedSender<Value>>,
 }
 
 impl Default for HttpPoller {

@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 mod inputs;
 mod filters;
 mod outputs;
@@ -12,30 +10,27 @@ use std::io::Read;
 use std::path::Path;
 use std::convert::TryFrom;
 
-use futures::{sync::mpsc};
-
 pub struct Pipeline(pub InputBlock, pub FilterBlock, pub OutputBlock);
 
 impl Pipeline {
 
     pub fn run(self) {
-        debug!("Running InputBlock");
         let filter_receiver = self.0.run();
-        debug!("Running FilterBlock");
         let output_receiver = self.1.run(filter_receiver);
-        debug!("Running OutputBlock");
         self.2.run(output_receiver);
     }
 
     pub fn from_toml(path: &Path) -> Pipeline {
 
         // outputs
-        let stdout = Output::Stdout(outputs::Stdout::new());
+        let stdout = Output::Stdout(outputs::Stdout {
+            ..Default::default()
+        });
 
         // blocks
         let mut inputs = InputBlock(vec![]);
         let mut filters = FilterBlock(vec![]);
-        let mut outputs = OutputBlock(vec![stdout]);
+        let outputs = OutputBlock(vec![stdout]);
 
         // read pipeline config
         let mut config_file = File::open(path)

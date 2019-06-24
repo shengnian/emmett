@@ -1,14 +1,6 @@
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-filters-json.html
-use serde_json::{json, value::Value};
-use std::path::Path;
-use std::thread::sleep;
-use std::time::Duration;
+use serde_json::{value::Value};
 use std::convert::TryFrom;
-
-use futures::{
-    sync::mpsc::{Receiver, Sender},
-    try_ready, Async, Future, Poll, Sink, Stream,
-};
 
 impl Json {
     pub fn process(self, input: Value) -> Result<Value, ()> {
@@ -37,7 +29,6 @@ pub struct Json {
     pub source: Option<String>,
     pub tag_on_failure: Vec<String>,
     pub target: Option<String>,
-    pub _sender: Option<Sender<Value>>,
 }
 
 impl Default for Json {
@@ -47,7 +38,6 @@ impl Default for Json {
             source: None,
             tag_on_failure: vec!["_jsonparsefailure".to_string()],
             target: None,
-            _sender: None,
         }
     }
 }

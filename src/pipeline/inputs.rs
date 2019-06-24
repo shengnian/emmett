@@ -1,16 +1,13 @@
-#![allow(unused)]
-
-use futures::sync::mpsc::{channel, Receiver, Sender};
-use futures::{try_ready, Future, Poll, Sink, Stream};
+use futures::sync::mpsc::{unbounded, UnboundedReceiver, UnboundedSender};
+use futures::{try_ready, Future, Poll, Sink, Stream, Async};
 use serde_json::Value;
-use std::collections::HashMap;
 
 #[derive(Debug)]
 pub enum Input {
-    Exec(Exec, Option<Sender<Value>>),
-    Generator(Generator, Option<Sender<Value>>),
-    HttpPoller(HttpPoller, Option<Sender<Value>>),
-    S3(S3, Option<Sender<Value>>),
+    Exec(Exec, Option<UnboundedSender<Value>>),
+    Generator(Generator, Option<UnboundedSender<Value>>),
+    HttpPoller(HttpPoller, Option<UnboundedSender<Value>>),
+    S3(S3, Option<UnboundedSender<Value>>),
 }
 
 impl Future for Input {
@@ -20,8 +17,6 @@ impl Future for Input {
     fn poll(&mut self) -> Poll<(), Self::Error> {
         loop {
             
-            debug!("Polling Input plugins.");
-
             let poll = match self {
                 Input::Exec(p, _) => p.poll(),
                 Input::Generator(p, _) => p.poll(),
@@ -29,31 +24,33 @@ impl Future for Input {
                 Input::S3(p, _) => p.poll(),
             };
 
-            if let Some(message) = try_ready!(poll) {
-
-                debug!("Received message from Input plugin.");
-
-                if let Some(sender) = match self {
-                    Input::Exec(_, s) => s,
-                    Input::Generator(_, s) => s,
-                    Input::HttpPoller(_, s) => s,
-                    Input::S3(_, s) => s,
-                } {
-                    try_ready!(sender.send(message).poll().map_err(|_| ()));
-                }
-                
+            let value = match try_ready!(poll) {
+                Some(value) => value,
+                None => break
+            };
+            
+            if let Some(sender) = match self {
+                Input::Exec(_, s) => s,
+                Input::Generator(_, s) => s,
+                Input::HttpPoller(_, s) => s,
+                Input::S3(_, s) => s,
+            } {
+                sender.send(value).poll().map_err(|_| ());
             }
             
         }
+        
+        Ok(Async::Ready(()))
+            
     }
 }
 
 pub struct InputBlock(pub Vec<Input>);
 
 impl InputBlock {
-    pub fn run(self) -> Receiver<Value> {
+    pub fn run(self) -> UnboundedReceiver<Value> {
 
-        let (input_sender, filter_receiver) = channel(1_024);
+        let (input_sender, filter_receiver) = unbounded();
 
         self.0.into_iter().for_each(|mut input| {
 
@@ -64,37 +61,12 @@ impl InputBlock {
                 Input::S3(_, ref mut s) => *s = Some(input_sender.clone()),
             }
 
-            debug!("Spawned a new Input plugin.");
-
             tokio::spawn(input);
 
         });
         
         filter_receiver
 
-    }
-}
-
-#[derive(Debug)]
-pub struct CommonOptions {
-    add_field: Option<HashMap<String, String>>,
-    codec: Option<String>,
-    enable_metric: Option<bool>,
-    id: Option<String>,
-    tags: Option<Vec<String>>,
-    r#type: Option<String>,
-}
-
-impl Default for CommonOptions {
-    fn default() -> Self {
-        Self {
-            add_field: None,
-            codec: Some("plain".to_string()),
-            enable_metric: Some(true),
-            id: None,
-            tags: None,
-            r#type: None,
-        }
     }
 }
 

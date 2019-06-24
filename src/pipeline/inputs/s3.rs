@@ -1,5 +1,5 @@
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-s3.html
-use futures::{sync::mpsc::Sender, Async, Poll, Stream};
+use futures::{sync::mpsc::UnboundedSender, Async, Poll, Stream};
 use serde_json::{json, value::Value};
 use std::collections::HashMap;
 use std::path::Path;
@@ -50,7 +50,7 @@ pub struct S3 {
     sincedb_path: Option<&'static Path>,
     temporary_directory: Option<&'static Path>,
     watch_for_new_files: Option<bool>,
-    pub _sender: Option<Sender<Value>>,
+    pub _sender: Option<UnboundedSender<Value>>,
 }
 
 impl S3 {
