@@ -21,15 +21,11 @@ impl Pipeline {
     }
 
     pub fn from_toml(path: &Path) -> Result<Pipeline, toml::de::Error> {
-        // outputs
-        let stdout = Output::Stdout(outputs::Stdout {
-            ..Default::default()
-        });
 
         // blocks
         let mut inputs = InputBlock(vec![]);
         let mut filters = FilterBlock(vec![]);
-        let outputs = OutputBlock(vec![stdout]);
+        let mut outputs = OutputBlock(vec![]);
 
         // read pipeline config
         let mut config_file = File::open(path).expect("Couldn't open config file.");
@@ -59,6 +55,18 @@ impl Pipeline {
                     if let Some(filter_block) = filter.as_table() {
                         filter_block.iter().for_each(|filter| {
                             filters.0.push(filter.to_filter());
+                        })
+                    }
+                });
+            }
+        }
+
+        if let Some(output_block) = toml.get("outputs") {
+            if let Some(output_block) = output_block.as_array() {
+                output_block.iter().for_each(|output| {
+                    if let Some(output_block) = output.as_table() {
+                        output_block.iter().for_each(|output| {
+                            outputs.0.push(output.to_output());
                         })
                     }
                 });
@@ -105,6 +113,22 @@ impl FilterConfig for (&String, &toml::Value) {
                 Filter::Json(plugin)
             }
             _ => panic!("Bad configuration for {} filter block.", self.0)
+        }
+    }
+}
+
+trait OutputConfig {
+    fn to_output(&self) -> Output;
+}
+
+impl OutputConfig for (&String, &toml::Value) {
+    fn to_output(&self) -> Output {
+        match self.0.as_str() {
+            "stdout" => {
+                let plugin = Stdout::try_from(self.1).expect("Incorrect Stdout output config.");
+                Output::Stdout(plugin)
+            }
+            _ => panic!("Bad configuration for {} output block.", self.0)
         }
     }
 }

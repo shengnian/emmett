@@ -54,8 +54,8 @@ target = "jsonString"
 
 [[outputs]]
 
-# [outputs.stdout]
-# codec = "rubydebug"
+[outputs.stdout]
+codec = "rubydebug"
 
 # [outputs.elasticsearch]
 # hosts = ["localhost:9200"]
