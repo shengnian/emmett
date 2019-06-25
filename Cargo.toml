@@ -4,6 +4,14 @@ edition = "2018"
 name = "emmett"
 version = "0.1.0"
 
+[lib]
+name = "emmett"
+path = "src/lib.rs"
+
+[[bin]]
+name = "emmett"
+path = "src/bin.rs"
+
 [dependencies]
 url = "1.7.2"
 tokio = "0.1.20"
