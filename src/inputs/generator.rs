@@ -13,7 +13,6 @@ impl Stream for Generator {
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-
         try_ready!(self
             ._interval
             .poll()

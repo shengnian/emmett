@@ -1,6 +1,6 @@
+use serde_json::Value;
 /// Specifiction: https://www.elastic.co/guide/en/logstash/current/plugins-filters-bytes.html
 use std::sync::mpsc::{Receiver, Sender};
-use serde_json::Value;
 
 #[derive(Debug)]
 #[allow(unused)]

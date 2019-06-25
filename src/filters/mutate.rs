@@ -253,7 +253,7 @@ impl TryFrom<&toml::Value> for Mutate {
             if split_setting.len() > 0 {
                 mutate.split = Some(Vec::new());
             }
-            
+
             for (field, value) in split_setting.iter() {
                 let value = value
                     .as_str()

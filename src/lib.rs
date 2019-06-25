@@ -9,6 +9,7 @@ use std::convert::TryFrom;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
+use toml::Value;
 
 #[derive(Debug)]
 pub struct Pipeline(pub InputBlock, pub FilterBlock, pub OutputBlock);
@@ -20,7 +21,7 @@ impl Pipeline {
         self.2.run(output_receiver);
     }
 
-    pub fn from_toml(path: &Path) -> Result<Pipeline, ()> {
+    pub fn from_toml(path: &Path) -> Result<Pipeline, toml::de::Error> {
         // outputs
         let stdout = Output::Stdout(outputs::Stdout {
             ..Default::default()
@@ -39,7 +40,7 @@ impl Pipeline {
             .read_to_string(&mut config)
             .expect("Couldn't read config file.");
 
-        let toml: toml::Value = config.parse().expect("Couldn't parse config TOML.");
+        let toml: Value = config.parse()?;
 
         if let Some(input_block) = toml.get("inputs") {
             if let Some(input_block) = input_block.as_array() {
@@ -65,8 +66,6 @@ impl Pipeline {
             }
         }
 
-        // dbg!(&filters.0);
-
         Ok(Pipeline(inputs, filters, outputs))
     }
 }
@@ -75,7 +74,7 @@ trait InputPlugin {
     fn to_input(&self) -> Input;
 }
 
-impl InputPlugin for (&String, &toml::Value) {
+impl InputPlugin for (&String, &Value) {
     fn to_input(&self) -> Input {
         if self.0 == "generator" {
             let plugin = Generator::try_from(self.1).unwrap();
@@ -93,7 +92,7 @@ trait FilterPlugin {
     fn to_filter(&self) -> Filter;
 }
 
-impl FilterPlugin for (&String, &toml::Value) {
+impl FilterPlugin for (&String, &Value) {
     fn to_filter(&self) -> Filter {
         if self.0 == "mutate" {
             let plugin = Mutate::try_from(self.1).expect("Incorrect Mutate filter config.");
@@ -109,9 +108,13 @@ impl FilterPlugin for (&String, &toml::Value) {
 
 #[cfg(test)]
 mod tests {
+
+    use crate::*;
+    use std::path::Path;
+
     #[test]
     fn parse_toml() {
-        let pipeline = crate::Pipeline::from_toml(std::path::Path::new("./example_configs/full.toml"));
+        let pipeline = Pipeline::from_toml(Path::new("./example_configs/full.toml"));
         assert!(pipeline.is_ok());
     }
 }

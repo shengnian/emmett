@@ -15,7 +15,6 @@ impl Stream for HttpPoller {
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-
         // schedule
         try_ready!(self
             .schedule

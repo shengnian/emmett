@@ -25,7 +25,6 @@ impl<'a> Geoip<'a> {
 }
 
 #[derive(Debug)]
-
 #[allow(unused)]
 pub struct Geoip<'a> {
     cache_size: Option<u64>,
@@ -50,7 +49,6 @@ impl<'a> Default for Geoip<'a> {
         }
     }
 }
-
 
 #[allow(unused)]
 fn ip_api(ip: &str) -> Result<Value, reqwest::Error> {
