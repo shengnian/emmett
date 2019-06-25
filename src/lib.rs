@@ -9,7 +9,6 @@ use std::convert::TryFrom;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
-use toml::Value;
 
 #[derive(Debug)]
 pub struct Pipeline(pub InputBlock, pub FilterBlock, pub OutputBlock);
@@ -40,7 +39,7 @@ impl Pipeline {
             .read_to_string(&mut config)
             .expect("Couldn't read config file.");
 
-        let toml: Value = config.parse()?;
+        let toml: toml::Value = config.parse()?;
 
         if let Some(input_block) = toml.get("inputs") {
             if let Some(input_block) = input_block.as_array() {
@@ -70,29 +69,31 @@ impl Pipeline {
     }
 }
 
-trait InputPlugin {
+trait InputConfig {
     fn to_input(&self) -> Input;
 }
 
-impl InputPlugin for (&String, &Value) {
+impl InputConfig for (&String, &toml::Value) {
     fn to_input(&self) -> Input {
-        if self.0 == "generator" {
-            let plugin = Generator::try_from(self.1).unwrap();
-            return Input::Generator(plugin, None);
-        };
-        if self.0 == "http_poller" {
-            let plugin = HttpPoller::try_from(self.1).unwrap();
-            return Input::HttpPoller(Box::new(plugin), None);
-        };
-        panic!("Bad configuration for {} input block.", self.0);
+        match self.0.as_str() {
+            "generator" => {
+                let plugin = Generator::try_from(self.1).unwrap();
+                Input::Generator(plugin, None)
+            }
+            "http_poller" => {
+                let plugin = HttpPoller::try_from(self.1).unwrap();
+                Input::HttpPoller(Box::new(plugin), None)
+            }
+            _ => panic!("Bad configuration for {} input block.", self.0)
+        }
     }
 }
 
-trait FilterPlugin {
+trait FilterConfig {
     fn to_filter(&self) -> Filter;
 }
 
-impl FilterPlugin for (&String, &Value) {
+impl FilterConfig for (&String, &toml::Value) {
     fn to_filter(&self) -> Filter {
         match self.0.as_str() {
             "mutate" => {
