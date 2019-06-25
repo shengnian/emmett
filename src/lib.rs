@@ -94,15 +94,17 @@ trait FilterPlugin {
 
 impl FilterPlugin for (&String, &Value) {
     fn to_filter(&self) -> Filter {
-        if self.0 == "mutate" {
-            let plugin = Mutate::try_from(self.1).expect("Incorrect Mutate filter config.");
-            return Filter::Mutate(Box::new(plugin));
-        };
-        if self.0 == "json" {
-            let plugin = Json::try_from(self.1).expect("Incorrect Json filter config.");
-            return Filter::Json(plugin);
-        };
-        panic!("Bad configuration for {} filter block.", self.0);
+        match self.0.as_str() {
+            "mutate" => {
+                let plugin = Mutate::try_from(self.1).expect("Incorrect Mutate filter config.");
+                Filter::Mutate(Box::new(plugin))
+            }
+            "json" => {
+                let plugin = Json::try_from(self.1).expect("Incorrect Json filter config.");
+                Filter::Json(plugin)
+            }
+            _ => panic!("Bad configuration for {} filter block.", self.0)
+        }
     }
 }
 
