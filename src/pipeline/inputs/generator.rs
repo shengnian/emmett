@@ -13,22 +13,16 @@ impl Stream for Generator {
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-        debug!("Polled Generator input plugin.");
 
         try_ready!(self
             ._interval
             .poll()
             .map_err(|e| panic!("Generator timer failed: {:#?}", e)));
 
-        debug!("Generator input timer is ready.");
-
         let message = json!({
             "ip": "108.55.13.247",
             "jsonString": "{\n  \"userId\": 1,\n  \"id\": 1,\n  \"title\": \"delectus aut autem\",\n  \"completed\": false\n}"
         });
-
-        // dbg!(&message);
-        // println!("generator message");
 
         Ok(Async::Ready(Some(message)))
     }

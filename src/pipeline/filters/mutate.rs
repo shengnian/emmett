@@ -24,8 +24,10 @@ impl Mutate {
             strip(&mut input_copy, strip_fields);
         }
 
-        if let Some((split_field, split_at)) = self.split {
-            split(&mut input_copy, &split_field, &split_at);
+        if let Some(splits) = self.split {
+            for (split_field, split_at) in splits {
+                split(&mut input_copy, &split_field, &split_at);
+            }
         }
 
         if let Some(capitalize_fields) = self.capitalize {
@@ -178,7 +180,7 @@ pub struct Mutate {
     coerce: Option<String>,
     rename: Option<String>,
     replace: Option<Table>,
-    split: Option<(String, String)>,
+    split: Option<Vec<(String, String)>>,
     strip: Option<Vec<String>>,
     update: Option<String>,
     uppercase: Option<Vec<String>>,
@@ -247,11 +249,18 @@ impl TryFrom<&toml::Value> for Mutate {
             let split_setting = split_setting
                 .as_table()
                 .expect("Couldn't parse Mutate split field as table.");
-            for (field, value) in split_setting.iter().take(1) {
+
+            if split_setting.len() > 0 {
+                mutate.split = Some(Vec::new());
+            }
+            
+            for (field, value) in split_setting.iter() {
                 let value = value
                     .as_str()
                     .expect("Can't parse Mutate filter split setting as string.");
-                mutate.split = Some((field.to_string(), value.to_string()));
+                if let Some(ref mut splits) = mutate.split {
+                    splits.push((field.to_string(), value.to_string()))
+                }
             }
         }
 

@@ -15,23 +15,19 @@ impl Stream for HttpPoller {
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-        debug!("Polled HttpPoller input.");
 
         // schedule
         try_ready!(self
             .schedule
             .poll()
             .map_err(|e| panic!("HttpPoller timer failed: {:#?}", e)));
-        debug!("HttpPoller timer is ready.");
 
         let client = self
             ._client
             .as_ref()
             .expect("Couldn't access http client for HttpPoller input.");
 
-        // urls
-
-        // only use first url for now
+        // urls - only use first url for now
         let url = &self.urls[0];
 
         let mut req = client.request(http::Method::GET, url.to_owned());
@@ -41,22 +37,13 @@ impl Stream for HttpPoller {
             req = req.basic_auth(user, pass);
         }
 
-        debug!("Sending http request.");
-
         let res = req
             .send()
             .expect("Couldn't send HttpPoller input request.")
             .json()
             .expect("Couldn't parse HttpPoller input response as JSON.");
 
-        // dbg!(&res);
-        // println!("http message");
-
-        debug!("Received http response.");
-
         // metadata_target
-
-        debug!("HttpPoller input plugin sending message.");
 
         Ok(Async::Ready(res))
     }
@@ -117,7 +104,7 @@ impl Default for HttpPoller {
             proxy: None,
             request_timeout: Some(60),
             retry_non_idempotent: Some(false),
-            schedule: Interval::new_interval(Duration::from_millis(1000)),
+            schedule: Interval::new_interval(Duration::from_millis(2000)),
             socket_timeout: Some(10),
             target: None,
             truststore: None,
