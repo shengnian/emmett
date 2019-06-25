@@ -1,25 +1,25 @@
-use serde_json::Value;
 /// Specifiction: https://www.elastic.co/guide/en/logstash/current/plugins-filters-bytes.html
-use std::collections::HashMap;
 use std::sync::mpsc::{Receiver, Sender};
+use serde_json::Value;
 
 #[derive(Debug)]
-pub struct BytesFilter<'a> {
-    source: &'a str,
-    target: Option<&'a str>,
-    conversion_method: &'a str,
-    separator: &'a str, // docs seem to have a typo
+#[allow(unused)]
+pub struct BytesFilter {
+    source: String,
+    target: Option<String>,
+    conversion_method: String,
+    separator: String, // docs seem to have a typo
     pub _receiver: Option<Receiver<Value>>,
     pub _sender: Option<Sender<Value>>,
 }
 
-impl<'a> BytesFilter<'a> {
-    pub fn new() -> Self {
+impl Default for BytesFilter {
+    fn default() -> Self {
         Self {
-            source: "message",
+            source: "message".to_string(),
             target: None,
-            conversion_method: "binary",
-            separator: ".",
+            conversion_method: "binary".to_string(),
+            separator: ".".to_string(),
             _receiver: None,
             _sender: None,
         }

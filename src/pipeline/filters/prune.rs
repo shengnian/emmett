@@ -1,23 +1,24 @@
-use serde_json::Value;
 /// Specifiction: https://www.elastic.co/guide/en/logstash/current/plugins-filters-prune.html
+use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::mpsc::{Receiver, Sender};
 
 #[derive(Debug)]
-pub struct PruneFilter<'a> {
-    blacklist_names: Option<Vec<&'a str>>,
-    blacklist_values: Option<HashMap<&'a str, &'a str>>,
+#[allow(unused)]
+pub struct PruneFilter {
+    blacklist_names: Option<Vec<String>>,
+    blacklist_values: Option<HashMap<String, String>>,
     interpolate: bool,
-    whitelist_names: Option<Vec<&'a str>>,
-    whitelist_values: Option<HashMap<&'a str, &'a str>>,
+    whitelist_names: Option<Vec<String>>,
+    whitelist_values: Option<HashMap<String, String>>,
     pub _receiver: Option<Receiver<Value>>,
     pub _sender: Option<Sender<Value>>,
 }
 
-impl<'a> PruneFilter<'a> {
-    pub fn new() -> Self {
+impl Default for PruneFilter {
+    fn default() -> Self {
         Self {
-            blacklist_names: Some(vec!["%{[^}]+}"]),
+            blacklist_names: Some(vec!["%{[^}]+}".to_string()]),
             blacklist_values: None,
             interpolate: false,
             whitelist_names: None,

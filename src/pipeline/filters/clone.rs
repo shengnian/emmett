@@ -3,7 +3,7 @@ use futures::{
     sync::mpsc::{Receiver, Sender},
     try_ready, Async, Future, Poll, Sink, Stream,
 };
-use serde_json::{json, value::Value};
+use serde_json::value::Value;
 
 impl Stream for Clone {
     type Item = Value;
@@ -29,19 +29,11 @@ impl Stream for Clone {
 }
 
 #[derive(Debug)]
+#[allow(unused)]
 pub struct Clone {
-    clones: Vec<&'static str>,
+    clones: Vec<String>,
     pub _receiver: Option<Receiver<Value>>,
     pub _sender: Option<Sender<Value>>,
-}
-
-impl Clone {
-    pub fn new(clones: Vec<&'static str>) -> Self {
-        Self {
-            clones,
-            ..Default::default()
-        }
-    }
 }
 
 impl Default for Clone {

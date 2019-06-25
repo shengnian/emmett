@@ -1,6 +1,7 @@
 use futures::{
+    lazy, stream,
     sync::mpsc::{unbounded, UnboundedReceiver},
-    Future, Sink, Stream, stream, lazy
+    Future, Sink, Stream,
 };
 use serde_json::Value;
 
@@ -10,41 +11,38 @@ pub struct FilterBlock(pub Vec<Filter>);
 pub enum Filter {
     // Geoip(geoip::Geoip<'static>),
     Json(json::Json),
-    Mutate(mutate::Mutate),
+    Mutate(Box<mutate::Mutate>),
     // Clone(clone::Clone),
     // Fingerprint(fingerprint::Fingerprint<'static>),
 }
 
 impl FilterBlock {
     pub fn run(self, receiver: UnboundedReceiver<Value>) -> UnboundedReceiver<Value> {
-
         let (filter_sender, output_receiver) = unbounded();
 
         let filter_stream = receiver.for_each(move |message| {
-
             let filter_sender = filter_sender.clone();
 
-            let stream = stream::iter_ok::<_, ()>(self.0.to_owned())
+            stream::iter_ok::<_, ()>(self.0.to_owned())
                 .fold(message, |acc, curr| {
-                    lazy(|| {
-                        match curr {
-                            Filter::Json(p) => p.process(acc),
-                            Filter::Mutate(p) => p.process(acc)
-                        }
+                    lazy(|| match curr {
+                        Filter::Json(p) => p.process(acc),
+                        Filter::Mutate(p) => p.process(acc),
                     })
-                }).and_then(move |message| {
-                    filter_sender.send(message).map_err(|_| ()).poll().expect("Couldn't send message from FilterBlock.");
+                })
+                .and_then(move |message| {
+                    filter_sender
+                        .send(message)
+                        .map_err(|_| ())
+                        .poll()
+                        .expect("Couldn't send message from FilterBlock.");
                     Ok(())
-                });
-
-            stream
-                
+                })
         });
 
         tokio::spawn(filter_stream);
-        
+
         output_receiver
-            
     }
 }
 

@@ -1,13 +1,14 @@
 use futures::sync::mpsc::{unbounded, UnboundedReceiver, UnboundedSender};
-use futures::{try_ready, Future, Poll, Sink, Stream, Async};
+use futures::{try_ready, Async, Future, Poll, Sink, Stream};
 use serde_json::Value;
 
 #[derive(Debug)]
+#[allow(unused)]
 pub enum Input {
     Exec(Exec, Option<UnboundedSender<Value>>),
     Generator(Generator, Option<UnboundedSender<Value>>),
-    HttpPoller(HttpPoller, Option<UnboundedSender<Value>>),
-    S3(S3, Option<UnboundedSender<Value>>),
+    HttpPoller(Box<HttpPoller>, Option<UnboundedSender<Value>>),
+    S3(Box<S3>, Option<UnboundedSender<Value>>),
 }
 
 impl Future for Input {
@@ -16,7 +17,6 @@ impl Future for Input {
 
     fn poll(&mut self) -> Poll<(), Self::Error> {
         loop {
-            
             let poll = match self {
                 Input::Exec(p, _) => p.poll(),
                 Input::Generator(p, _) => p.poll(),
@@ -26,22 +26,24 @@ impl Future for Input {
 
             let value = match try_ready!(poll) {
                 Some(value) => value,
-                None => break
+                None => break,
             };
-            
+
             if let Some(sender) = match self {
                 Input::Exec(_, s) => s,
                 Input::Generator(_, s) => s,
                 Input::HttpPoller(_, s) => s,
                 Input::S3(_, s) => s,
             } {
-                sender.send(value).poll().map_err(|_| ());
+                sender
+                    .send(value)
+                    .poll()
+                    .map_err(|_| ())
+                    .expect("Something went wront polling Input Sender.");
             }
-            
         }
-        
+
         Ok(Async::Ready(()))
-            
     }
 }
 
@@ -49,11 +51,9 @@ pub struct InputBlock(pub Vec<Input>);
 
 impl InputBlock {
     pub fn run(self) -> UnboundedReceiver<Value> {
-
         let (input_sender, filter_receiver) = unbounded();
 
         self.0.into_iter().for_each(|mut input| {
-
             match input {
                 Input::Exec(_, ref mut s) => *s = Some(input_sender.clone()),
                 Input::Generator(_, ref mut s) => *s = Some(input_sender.clone()),
@@ -62,11 +62,9 @@ impl InputBlock {
             }
 
             tokio::spawn(input);
-
         });
-        
-        filter_receiver
 
+        filter_receiver
     }
 }
 

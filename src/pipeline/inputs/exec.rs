@@ -1,22 +1,20 @@
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-exec.html
-use futures::{sync::mpsc::UnboundedSender, try_ready, Async, Future, Poll, Stream};
+use futures::{sync::mpsc::UnboundedSender, Async, Poll, Stream};
 use serde_json::{json, value::Value};
 use std::process::Command;
 use std::time::Duration;
 use tokio::timer::Interval;
-use tokio_process::CommandExt;
 
 impl Stream for Exec {
     type Item = Value;
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-
         // self.schedule
         std::thread::sleep(Duration::from_millis(1000));
         // try_ready!(self.interval.poll().map_err(|_| ()));
 
-        let mut message = Command::new(&self.command)
+        let message = Command::new(&self.command)
             .output()
             .expect("Couldn't get Exec command output.");
 
@@ -47,15 +45,6 @@ impl Default for Exec {
             interval: Interval::new_interval(Duration::from_secs(5)),
             schedule: Some("test".to_string()),
             _sender: None,
-        }
-    }
-}
-
-impl Exec {
-    pub fn new(command: String) -> Self {
-        Self {
-            command,
-            ..Default::default()
         }
     }
 }

@@ -1,11 +1,11 @@
 #![allow(unused)]
 
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-generator.html
-use futures::{sync::mpsc::UnboundedSender, Async, Poll, Stream, try_ready};
+use futures::{sync::mpsc::UnboundedSender, try_ready, Async, Poll, Stream};
 use serde_json::{json, value::Value};
+use std::convert::TryFrom;
 use std::thread::sleep;
 use std::time::Duration;
-use std::convert::TryFrom;
 use tokio::timer::Interval;
 
 impl Stream for Generator {
@@ -13,13 +13,15 @@ impl Stream for Generator {
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-
         debug!("Polled Generator input plugin.");
 
-        try_ready!(self._interval.poll().map_err(|e| panic!("Generator timer failed: {:#?}", e)));
+        try_ready!(self
+            ._interval
+            .poll()
+            .map_err(|e| panic!("Generator timer failed: {:#?}", e)));
 
         debug!("Generator input timer is ready.");
-                
+
         let message = json!({
             "ip": "108.55.13.247",
             "jsonString": "{\n  \"userId\": 1,\n  \"id\": 1,\n  \"title\": \"delectus aut autem\",\n  \"completed\": false\n}"
@@ -27,9 +29,8 @@ impl Stream for Generator {
 
         // dbg!(&message);
         // println!("generator message");
-        
-        Ok(Async::Ready(Some(message)))
 
+        Ok(Async::Ready(Some(message)))
     }
 }
 
@@ -40,7 +41,7 @@ pub struct Generator {
     message: String,
     threads: u32,
     pub _sender: Option<UnboundedSender<Value>>,
-    _interval: Interval
+    _interval: Interval,
 }
 
 impl Generator {
@@ -59,28 +60,29 @@ impl Default for Generator {
             message: "Hello world!".to_string(),
             threads: 1,
             _sender: None,
-            _interval: Interval::new_interval(Duration::from_millis(1500))
+            _interval: Interval::new_interval(Duration::from_millis(1500)),
         }
     }
 }
 
 impl TryFrom<&toml::Value> for Generator {
     type Error = ();
-    
-    fn try_from(toml: &toml::Value) -> Result<Self, Self::Error> {
 
+    fn try_from(toml: &toml::Value) -> Result<Self, Self::Error> {
         let mut generator = Generator {
             ..Default::default()
         };
-        
+
         if let Some(count) = toml.get("count") {
-            let count = count.as_integer()
+            let count = count
+                .as_integer()
                 .expect("Couldn't parse Generator count field as integer.");
             generator.count = count as u64;
         }
 
         if let Some(lines) = toml.get("lines") {
-            let lines = lines.as_array()
+            let lines = lines
+                .as_array()
                 .expect("Couldn't parse Generator message field as array.")
                 .iter()
                 .map(|x| x.as_str().unwrap().to_owned())
@@ -90,18 +92,19 @@ impl TryFrom<&toml::Value> for Generator {
         }
 
         if let Some(message) = toml.get("message") {
-            let message = message.as_str()
+            let message = message
+                .as_str()
                 .expect("Couldn't parse Generator message field as string.");
             generator.message = message.to_owned();
         }
-        
+
         if let Some(threads) = toml.get("threads") {
-            let threads = threads.as_integer()
+            let threads = threads
+                .as_integer()
                 .expect("Couldn't parse Generator threads field as integer.");
             generator.threads = threads as u32;
         }
-            
+
         Ok(generator)
-        
     }
 }

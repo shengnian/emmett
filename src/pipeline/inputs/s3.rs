@@ -53,8 +53,8 @@ pub struct S3 {
     pub _sender: Option<UnboundedSender<Value>>,
 }
 
-impl S3 {
-    pub fn new(bucket: String) -> Self {
+impl Default for S3 {
+    fn default() -> Self {
         Self {
             access_key_id: None,
             additional_settings: None,
@@ -62,7 +62,7 @@ impl S3 {
             backup_add_prefix: None,
             backup_to_bucket: None,
             backup_to_dir: None,
-            bucket,
+            bucket: String::new(),
             delete: Some(false),
             endpoint: None,
             exclude_pattern: None,

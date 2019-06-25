@@ -2,12 +2,12 @@
 use futures::{sync::mpsc::UnboundedSender, try_ready, Async, Poll, Stream};
 use reqwest::{Certificate, Client, Proxy, RedirectPolicy};
 use serde_json::value::Value;
+use std::convert::TryFrom;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 use std::time::Duration;
 use tokio::timer::Interval;
-use std::convert::TryFrom;
 use url::Url;
 
 impl Stream for HttpPoller {
@@ -15,23 +15,27 @@ impl Stream for HttpPoller {
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-
         debug!("Polled HttpPoller input.");
 
         // schedule
-        try_ready!(self.schedule.poll().map_err(|e| panic!("HttpPoller timer failed: {:#?}", e)));
-        debug!("HttpPoller timer is ready.");        
-        
-        let client = self._client.as_ref()
+        try_ready!(self
+            .schedule
+            .poll()
+            .map_err(|e| panic!("HttpPoller timer failed: {:#?}", e)));
+        debug!("HttpPoller timer is ready.");
+
+        let client = self
+            ._client
+            .as_ref()
             .expect("Couldn't access http client for HttpPoller input.");
-        
+
         // urls
 
         // only use first url for now
         let url = &self.urls[0];
-        
+
         let mut req = client.request(http::Method::GET, url.to_owned());
-        
+
         // user and password
         if let (Some(user), pass) = (self.user.to_owned(), self.password.to_owned()) {
             req = req.basic_auth(user, pass);
@@ -39,22 +43,22 @@ impl Stream for HttpPoller {
 
         debug!("Sending http request.");
 
-        let res = req.send()
+        let res = req
+            .send()
             .expect("Couldn't send HttpPoller input request.")
             .json()
             .expect("Couldn't parse HttpPoller input response as JSON.");
 
         // dbg!(&res);
         // println!("http message");
-        
+
         debug!("Received http response.");
-        
+
         // metadata_target
 
         debug!("HttpPoller input plugin sending message.");
 
         Ok(Async::Ready(res))
-
     }
 }
 
@@ -129,41 +133,43 @@ impl Default for HttpPoller {
 
 impl TryFrom<&toml::Value> for HttpPoller {
     type Error = ();
-    
-    fn try_from(toml: &toml::Value) -> Result<Self, Self::Error> {
 
+    fn try_from(toml: &toml::Value) -> Result<Self, Self::Error> {
         let mut poller = HttpPoller {
             ..Default::default()
         };
-        
-        if let Some(urls) = toml.get("urls") {
 
+        if let Some(urls) = toml.get("urls") {
             // if more than one
             if let Some(urls) = urls.as_array() {
                 urls.iter().for_each(|url| {
-                    
                     if let Some(url) = url.as_table() {
-
-                        for (key, value) in url.iter() {
+                        for (_key, value) in url.iter() {
                             if let Some(url) = value.as_str() {
-                                poller.urls.push(Url::parse(url).expect("Can't parse HttpPoller input config URL."));
+                                poller.urls.push(
+                                    Url::parse(url)
+                                        .expect("Can't parse HttpPoller input config URL."),
+                                );
                             }
                             if let Some(url) = value.as_table() {
-                                let url = url.get("url")
+                                let url = url
+                                    .get("url")
                                     .expect("Missing required URL field.")
                                     .as_str()
                                     .expect("Couldn't parse HttpPoller url as string.");
-                                poller.urls.push(Url::parse(url).expect("Can't parse HttpPoller input config URL."));
+                                poller.urls.push(
+                                    Url::parse(url)
+                                        .expect("Can't parse HttpPoller input config URL."),
+                                );
                             }
                         }
-                        
                     }
                 });
             }
         }
 
         // build client
-        
+
         let mut client = Client::builder();
 
         // automatic_retries
@@ -177,7 +183,8 @@ impl TryFrom<&toml::Value> for HttpPoller {
                 .read_to_end(&mut buf)
                 .expect("Couldn't read CA file.");
 
-            let cert = Certificate::from_der(&buf).expect("Certificate cannot be created from file.");
+            let cert =
+                Certificate::from_der(&buf).expect("Certificate cannot be created from file.");
 
             client = client.add_root_certificate(cert);
         }
@@ -225,8 +232,7 @@ impl TryFrom<&toml::Value> for HttpPoller {
 
         let client = client.build().expect("Couldn't build Reqwest client.");
         poller._client = Some(client);
-        
+
         Ok(poller)
-        
     }
 }

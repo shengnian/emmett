@@ -1,19 +1,18 @@
-mod inputs;
 mod filters;
+mod inputs;
 mod outputs;
-use inputs::*;
 use filters::*;
+use inputs::*;
 use outputs::*;
 
+use std::convert::TryFrom;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
-use std::convert::TryFrom;
 
 pub struct Pipeline(pub InputBlock, pub FilterBlock, pub OutputBlock);
 
 impl Pipeline {
-
     pub fn run(self) {
         let filter_receiver = self.0.run();
         let output_receiver = self.1.run(filter_receiver);
@@ -21,7 +20,6 @@ impl Pipeline {
     }
 
     pub fn from_toml(path: &Path) -> Pipeline {
-
         // outputs
         let stdout = Output::Stdout(outputs::Stdout {
             ..Default::default()
@@ -33,15 +31,14 @@ impl Pipeline {
         let outputs = OutputBlock(vec![stdout]);
 
         // read pipeline config
-        let mut config_file = File::open(path)
-            .expect("Couldn't open config file.");
+        let mut config_file = File::open(path).expect("Couldn't open config file.");
 
         let mut config = String::new();
-        config_file.read_to_string(&mut config)
+        config_file
+            .read_to_string(&mut config)
             .expect("Couldn't read config file.");
 
-        let toml: toml::Value = config.parse()
-            .expect("Couldn't parse config TOML.");
+        let toml: toml::Value = config.parse().expect("Couldn't parse config TOML.");
 
         if let Some(input_block) = toml.get("inputs") {
             if let Some(input_block) = input_block.as_array() {
@@ -68,11 +65,9 @@ impl Pipeline {
         }
 
         // dbg!(&filters.0);
-        
+
         Pipeline(inputs, filters, outputs)
-        
     }
-    
 }
 
 trait InputPlugin {
@@ -83,11 +78,11 @@ impl InputPlugin for (&String, &toml::Value) {
     fn to_input(&self) -> Input {
         if self.0 == "generator" {
             let plugin = Generator::try_from(self.1).unwrap();
-            return Input::Generator(plugin, None)
+            return Input::Generator(plugin, None);
         };
         if self.0 == "http_poller" {
             let plugin = HttpPoller::try_from(self.1).unwrap();
-            return Input::HttpPoller(plugin, None)
+            return Input::HttpPoller(Box::new(plugin), None);
         };
         panic!("Bad configuration for {} input block.", self.0);
     }
@@ -100,14 +95,12 @@ trait FilterPlugin {
 impl FilterPlugin for (&String, &toml::Value) {
     fn to_filter(&self) -> Filter {
         if self.0 == "mutate" {
-            let plugin = Mutate::try_from(self.1)
-                .expect("Incorrect Mutate filter config.");
-            return Filter::Mutate(plugin)
+            let plugin = Mutate::try_from(self.1).expect("Incorrect Mutate filter config.");
+            return Filter::Mutate(Box::new(plugin));
         };
         if self.0 == "json" {
-            let plugin = Json::try_from(self.1)
-                .expect("Incorrect Json filter config.");
-            return Filter::Json(plugin)
+            let plugin = Json::try_from(self.1).expect("Incorrect Json filter config.");
+            return Filter::Json(plugin);
         };
         panic!("Bad configuration for {} filter block.", self.0);
     }

@@ -10,20 +10,18 @@ pub enum Output {
 
 impl OutputBlock {
     pub fn run(self, outputs_receiver: UnboundedReceiver<Value>) {
-       
         let broadcast = outputs_receiver.for_each(move |message| {
-
             self.0.iter().for_each(move |output| {
+                // TODO: make async
                 match output {
                     Output::Stdout(p) => p.run(message.clone()),
                 };
             });
-                        
+
             Ok(())
         });
 
         tokio::spawn(broadcast);
-
     }
 }
 

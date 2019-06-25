@@ -3,9 +3,9 @@ use reqwest::{Client, RedirectPolicy};
 use serde_json::{json, value::Value};
 use std::path::Path;
 
+#[allow(unused)]
 impl<'a> Geoip<'a> {
     pub fn process(self, input: Value) -> Result<Value, ()> {
-
         if let Some(source) = input.get(&self.source) {
             let source = source
                 .as_str()
@@ -21,15 +21,16 @@ impl<'a> Geoip<'a> {
         } else {
             Ok(input)
         }
-            
     }
 }
 
 #[derive(Debug)]
+
+#[allow(unused)]
 pub struct Geoip<'a> {
     cache_size: Option<u64>,
     database: Option<&'a Path>,
-    default_database_type: Option<&'a str>,
+    default_database_type: Option<String>,
     fields: Option<Vec<String>>,
     source: String,
     tag_on_failure: Option<Vec<String>>,
@@ -41,7 +42,7 @@ impl<'a> Default for Geoip<'a> {
         Self {
             cache_size: Some(1000),
             database: None,
-            default_database_type: Some("City"),
+            default_database_type: Some("City".to_string()),
             fields: None,
             source: "".to_string(),
             tag_on_failure: Some(vec!["_geoip_lookup_failure".to_string()]),
@@ -50,6 +51,8 @@ impl<'a> Default for Geoip<'a> {
     }
 }
 
+
+#[allow(unused)]
 fn ip_api(ip: &str) -> Result<Value, reqwest::Error> {
     let client = Client::builder()
         .redirect(RedirectPolicy::limited(10))

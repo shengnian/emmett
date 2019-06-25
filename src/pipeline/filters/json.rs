@@ -1,10 +1,9 @@
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-filters-json.html
-use serde_json::{value::Value};
+use serde_json::value::Value;
 use std::convert::TryFrom;
 
 impl Json {
     pub fn process(self, input: Value) -> Result<Value, ()> {
-
         let mut input_mut = input.clone();
 
         // if field exists, get it; otherwise don't do anything
@@ -19,7 +18,6 @@ impl Json {
         }
 
         Ok(input_mut)
-            
     }
 }
 
@@ -42,29 +40,28 @@ impl Default for Json {
     }
 }
 
-
 impl TryFrom<&toml::Value> for Json {
     type Error = ();
-    
-    fn try_from(toml: &toml::Value) -> Result<Self, Self::Error> {
 
+    fn try_from(toml: &toml::Value) -> Result<Self, Self::Error> {
         let mut json = Json {
             ..Default::default()
         };
-        
+
         if let Some(source) = toml.get("source") {
-            let source = source.as_str()
+            let source = source
+                .as_str()
                 .expect("Couldn't parse Json filter source as string.");
             json.source = Some(source.to_owned());
         }
 
         if let Some(target) = toml.get("target") {
-            let target = target.as_str()
+            let target = target
+                .as_str()
                 .expect("Couldn't parse Json filter target as string.");
             json.target = Some(target.to_owned());
         }
-        
+
         Ok(json)
-        
     }
 }

@@ -1,9 +1,9 @@
 #![allow(unused)]
 
+use super::Run;
 /// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-outputs-stdout.html
 use futures::{Async, Poll, Stream};
 use serde_json::{json, value::Value};
-use super::Run;
 
 impl Run for Stdout {
     fn run(&self, input: Value) {
