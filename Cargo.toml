@@ -1,8 +1,14 @@
 [package]
+description = "A simple ETL tool."
 authors = ["Andrew Banchich <andrewbanchich@gmail.com>"]
 edition = "2018"
 name = "emmett"
 version = "0.1.0"
+license = "GPL-3.0-or-later"
+repository = "https://github.com/andrewbanchich/emmett"
+
+[badges]
+gitlab = { repository = "https://gitlab.com/andrewbanchich/emmett", branch = "master" }
 
 [lib]
 name = "emmett"
