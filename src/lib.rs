@@ -31,6 +31,7 @@ impl Pipeline {
         let mut config_file = File::open(path).expect("Couldn't open config file.");
 
         let mut config = String::new();
+
         config_file
             .read_to_string(&mut config)
             .expect("Couldn't read config file.");
