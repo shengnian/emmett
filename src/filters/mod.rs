@@ -5,6 +5,7 @@ use futures::{
 };
 use serde_json::Value;
 
+#[derive(Debug)]
 pub struct FilterBlock(pub Vec<Filter>);
 
 #[derive(Debug, Clone)]

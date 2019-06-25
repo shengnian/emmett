@@ -47,6 +47,7 @@ impl Future for Input {
     }
 }
 
+#[derive(Debug)]
 pub struct InputBlock(pub Vec<Input>);
 
 impl InputBlock {

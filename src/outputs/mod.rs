@@ -1,6 +1,7 @@
 use futures::{sync::mpsc::UnboundedReceiver, Stream};
 use serde_json::Value;
 
+#[derive(Debug)]
 pub struct OutputBlock(pub Vec<Output>);
 
 #[derive(Debug)]

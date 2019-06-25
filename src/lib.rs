@@ -10,6 +10,7 @@ use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 
+#[derive(Debug)]
 pub struct Pipeline(pub InputBlock, pub FilterBlock, pub OutputBlock);
 
 impl Pipeline {
@@ -19,7 +20,7 @@ impl Pipeline {
         self.2.run(output_receiver);
     }
 
-    pub fn from_toml(path: &Path) -> Pipeline {
+    pub fn from_toml(path: &Path) -> Result<Pipeline, ()> {
         // outputs
         let stdout = Output::Stdout(outputs::Stdout {
             ..Default::default()
@@ -66,7 +67,7 @@ impl Pipeline {
 
         // dbg!(&filters.0);
 
-        Pipeline(inputs, filters, outputs)
+        Ok(Pipeline(inputs, filters, outputs))
     }
 }
 
@@ -103,5 +104,14 @@ impl FilterPlugin for (&String, &toml::Value) {
             return Filter::Json(plugin);
         };
         panic!("Bad configuration for {} filter block.", self.0);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn parse_toml() {
+        let pipeline = crate::Pipeline::from_toml(std::path::Path::new("./example_configs/full.toml"));
+        assert!(pipeline.is_ok());
     }
 }
