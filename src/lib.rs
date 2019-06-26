@@ -6,37 +6,25 @@ use inputs::*;
 use outputs::*;
 
 use std::convert::TryFrom;
-use std::fs::File;
-use std::io::Read;
-use std::path::Path;
 
 #[derive(Debug)]
 pub struct Pipeline(pub InputBlock, pub FilterBlock, pub OutputBlock);
 
+/// A `Pipeline` is a set of `Input`s, `Filter`s, and `Output`s.
 impl Pipeline {
+    /// Execute a pipeline.
     pub fn run(self) {
         let filter_receiver = self.0.run();
         let output_receiver = self.1.run(filter_receiver);
         self.2.run(output_receiver);
     }
 
-    pub fn from_toml(path: &Path) -> Result<Pipeline, toml::de::Error> {
-
+    /// Construct a `Pipeline` by parsing a TOML configuration file.
+    pub fn from_toml(toml: toml::Value) -> Result<Pipeline, toml::de::Error> {
         // blocks
         let mut inputs = InputBlock(vec![]);
         let mut filters = FilterBlock(vec![]);
         let mut outputs = OutputBlock(vec![]);
-
-        // read pipeline config
-        let mut config_file = File::open(path).expect("Couldn't open config file.");
-
-        let mut config = String::new();
-
-        config_file
-            .read_to_string(&mut config)
-            .expect("Couldn't read config file.");
-
-        let toml: toml::Value = config.parse()?;
 
         if let Some(input_block) = toml.get("inputs") {
             if let Some(input_block) = input_block.as_array() {
@@ -93,7 +81,7 @@ impl InputConfig for (&String, &toml::Value) {
                 let plugin = HttpPoller::try_from(self.1).unwrap();
                 Input::HttpPoller(Box::new(plugin), None)
             }
-            _ => panic!("Bad configuration for {} input block.", self.0)
+            _ => panic!("Bad configuration for {} input block.", self.0),
         }
     }
 }
@@ -113,7 +101,7 @@ impl FilterConfig for (&String, &toml::Value) {
                 let plugin = Json::try_from(self.1).expect("Incorrect Json filter config.");
                 Filter::Json(plugin)
             }
-            _ => panic!("Bad configuration for {} filter block.", self.0)
+            _ => panic!("Bad configuration for {} filter block.", self.0),
         }
     }
 }
@@ -129,7 +117,7 @@ impl OutputConfig for (&String, &toml::Value) {
                 let plugin = Stdout::try_from(self.1).expect("Incorrect Stdout output config.");
                 Output::Stdout(plugin)
             }
-            _ => panic!("Bad configuration for {} output block.", self.0)
+            _ => panic!("Bad configuration for {} output block.", self.0),
         }
     }
 }

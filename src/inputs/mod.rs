@@ -4,6 +4,7 @@ use serde_json::Value;
 
 #[derive(Debug)]
 #[allow(unused)]
+/// An Input plugin
 pub enum Input {
     Exec(Exec, Option<UnboundedSender<Value>>),
     Generator(Generator, Option<UnboundedSender<Value>>),

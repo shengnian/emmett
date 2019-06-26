@@ -1,5 +1,3 @@
-> Note: This project is currently under heavy development, and contributors are welcome! Feedback is also greatly appreciated.
-
 # About
 
 emmett is an ETL tool with the goal of serving as a drop-in [Logstash](https://www.elastic.co/products/logstash) replacement as well as
