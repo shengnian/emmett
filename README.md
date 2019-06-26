@@ -1,3 +1,9 @@
+[API Docs](https://docs.rs/emmett/*/emmett/)
+
+![Crates.io](https://img.shields.io/crates/v/emmett.svg)
+![Gitlab pipeline status (branch)](https://img.shields.io/gitlab/pipeline/andrewbanchich/emmett/master.svg)
+![Crates.io](https://img.shields.io/crates/d/emmett.svg)
+
 # About
 
 emmett is a unified logging layer with the goal of serving as a drop-in [Logstash](https://www.elastic.co/products/logstash) replacement as well as
