@@ -3,9 +3,13 @@ description = "a simple etl tool"
 authors = ["Andrew Banchich <andrewbanchich@gmail.com>"]
 edition = "2018"
 name = "emmett"
-version = "0.1.0"
+version = "0.1.1"
 license = "GPL-3.0-or-later"
+homepage = "https://gitlab.com/andrewbanchich/emmett"
 repository = "https://github.com/andrewbanchich/emmett"
+readme = "README.md"
+keywords = ["ETL", "Logstash", "data", "logs"]
+categories = ["parsing"]
 
 [badges]
 gitlab = { repository = "andrewbanchich/emmett" }
