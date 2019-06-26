@@ -1,5 +1,5 @@
 [package]
-description = "A simple ETL tool."
+description = "a simple etl tool"
 authors = ["Andrew Banchich <andrewbanchich@gmail.com>"]
 edition = "2018"
 name = "emmett"
@@ -8,7 +8,7 @@ license = "GPL-3.0-or-later"
 repository = "https://github.com/andrewbanchich/emmett"
 
 [badges]
-gitlab = { repository = "https://gitlab.com/andrewbanchich/emmett", branch = "master" }
+gitlab = { repository = "andrewbanchich/emmett" }
 
 [lib]
 name = "emmett"
@@ -29,9 +29,5 @@ rusoto_core = "0.39.0"
 rusoto_s3 = "0.39.0"
 rusoto_credential = "0.39.0"
 http = "0.1.17"
-tokio-process = "0.2.3"
 sha1 = "0.6.0"
 toml = "0.5.1"
-log = "0.4.6"
-env_logger = "0.6.1"
-crossbeam = "0.7.1"
