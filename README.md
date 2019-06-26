@@ -1,6 +1,6 @@
 # About
 
-emmett is an ETL tool with the goal of serving as a drop-in [Logstash](https://www.elastic.co/products/logstash) replacement as well as
+emmett is a unified logging layer with the goal of serving as a drop-in [Logstash](https://www.elastic.co/products/logstash) replacement as well as
 providing added / improved features.
 
 emmett is written in [Rust](https://www.rust-lang.org/) and uses [Tokio](https://tokio.rs/), which means:
@@ -10,11 +10,10 @@ emmett is written in [Rust](https://www.rust-lang.org/) and uses [Tokio](https:/
 - No garbage collector == better and more consistent performance
 - Completely asynchronous - plugins operate independently of one another
 - Multithreaded and [work-stealing](https://en.wikipedia.org/wiki/Work_stealing)
-- No need to install Java
 
 # Usage
 
-emmett uses TOML for configuration, and can also parse [Logstash configuration files](https://www.elastic.co/guide/en/logstash/7.0/configuration-file-structure.html).
+emmett currently uses TOML for configuration, but will be able to parse [Logstash configuration files](https://www.elastic.co/guide/en/logstash/7.0/configuration-file-structure.html) as well as other formats like JSON in the future.
 
 The Logstash configuration file parser is currently on hold until the plugins themselves become more stable.
 Merge requests are always welcome though!
@@ -22,17 +21,38 @@ Merge requests are always welcome though!
 ```toml
 # This is an emmett config file.
 
-[input.stdin]
+[[inputs]]
 
-[filter.grok]
-match = { message = "%{COMBINEDAPACHELOG}" }
+[inputs.http_poller]
+request_timeout = 60
+schedule = { cron = "* * * * * UTC" }
+codec = "json"
+metadata_target = "http_poller_metadata"
+truststore = "/path/to/downloaded_truststore.jks"
+truststore_password = "mypassword"
+
+[[inputs.http_poller.urls]]
+test1 = "https://jsonplaceholder.typicode.com/posts/1"
+
+[[filters]]
+
+[filters.mutate]
+replace = { "id" = "yo dawg" }
+copy = { "title" = "titleCopy" }
+strip = ["body"]
+split = { "body" = "\n", "titleCopy" = " repellat " }
+capitalize = ["titleCopy"]
+join = { "body" = " ... "}
+
+[filters.json]
+source = "jsonString"
+target = "jsonString"
     
-[filter.date]
+[filters.date]
 match = [ "timestamp" , "dd/MMM/yyyy:HH:mm:ss Z" ]	
 
-[output.stdout]
-codec = "rubydebug"
+[[outputs]]
 
-[output.elasticsearch]
+[outputs.elasticsearch]
 hosts = ["localhost:9200"]
 ```

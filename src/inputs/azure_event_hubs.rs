@@ -1,25 +1,24 @@
-#![allow(unused)]
-
-/// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-azure_event_hubs.html
+// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-azure_event_hubs.html
 
 #[derive(Debug)]
-pub struct AzureEventHubsInput {
-    config_mode: Option<String>,
-    event_hubs: Option<Vec<&'static str>>,
-    event_hub_connections: Option<Vec<&'static str>>,
-    event_hub_connection: Option<String>,
-    checkpoint_interval: Option<u64>,
-    consumer_group: Option<String>,
-    decorate_events: Option<bool>,
-    initial_position: Option<String>,
-    initial_position_look_back: Option<u64>,
-    max_batch_size: Option<u64>,
-    storage_connection: Option<String>,
-    storage_container: Option<String>,
-    threads: Option<u64>,
+/// This plugin consumes events from Azure Event Hubs, a highly scalable data streaming platform and event ingestion service. Event producers send events to the Azure Event Hub, and this plugin consumes those events for use with Logstash.
+pub struct AzureEventHubs {
+    pub config_mode: Option<String>,
+    pub event_hubs: Option<Vec<&'static str>>,
+    pub event_hub_connections: Option<Vec<&'static str>>,
+    pub event_hub_connection: Option<String>,
+    pub checkpoint_interval: Option<u64>,
+    pub consumer_group: Option<String>,
+    pub decorate_events: Option<bool>,
+    pub initial_position: Option<String>,
+    pub initial_position_look_back: Option<u64>,
+    pub max_batch_size: Option<u64>,
+    pub storage_connection: Option<String>,
+    pub storage_container: Option<String>,
+    pub threads: Option<u64>,
 }
 
-impl Default for AzureEventHubsInput {
+impl Default for AzureEventHubs {
     fn default() -> Self {
         Self {
             config_mode: None,
@@ -35,14 +34,6 @@ impl Default for AzureEventHubsInput {
             storage_connection: None,
             storage_container: None,
             threads: None,
-        }
-    }
-}
-
-impl AzureEventHubsInput {
-    pub fn new() -> Self {
-        Self {
-            ..Default::default()
         }
     }
 }

@@ -1,10 +1,8 @@
-#![allow(unused)]
-
 // Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-kafka.html
 
 use std::path::Path;
 
-pub struct KafkaInput<'a> {
+pub struct Kafka<'a> {
     auto_commit_interval_ms: Option<&'a str>,
     auto_offset_reset: Option<&'a str>,
     bootstrap_servers: Option<&'a str>,
@@ -51,7 +49,7 @@ pub struct KafkaInput<'a> {
     value_deserializer_class: Option<&'a str>,
 }
 
-impl<'a> KafkaInput<'a> {
+impl<'a> Kafka<'a> {
     pub fn new() -> Self {
         Self {
             auto_commit_interval_ms: Some("5000"),

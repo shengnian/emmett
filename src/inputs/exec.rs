@@ -1,4 +1,4 @@
-/// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-exec.html
+// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-exec.html
 use futures::{sync::mpsc::UnboundedSender, Async, Poll, Stream};
 use serde_json::{json, value::Value};
 use std::process::Command;
@@ -31,10 +31,11 @@ impl Stream for Exec {
 }
 
 #[derive(Debug)]
+/// Periodically run a shell command and capture the whole output as an event.
 pub struct Exec {
-    command: String,
-    interval: Interval,
-    schedule: Option<String>,
+    pub command: String,
+    pub interval: Interval,
+    pub schedule: Option<String>,
     pub _sender: Option<UnboundedSender<Value>>,
 }
 

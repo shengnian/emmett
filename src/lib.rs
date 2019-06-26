@@ -1,6 +1,6 @@
-mod filters;
-mod inputs;
-mod outputs;
+pub mod filters;
+pub mod inputs;
+pub mod outputs;
 use filters::*;
 use inputs::*;
 use outputs::*;

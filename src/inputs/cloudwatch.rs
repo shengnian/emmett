@@ -1,29 +1,29 @@
 #![allow(unused)]
 
-/// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-cloudwatch.html
+// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-cloudwatch.html
 
 #[derive(Debug)]
-pub struct CloudwatchInput {
-    access_key_id: Option<&'static str>,
-    aws_credentials_file: Option<&'static str>,
-    combined: Option<bool>,
-    endpoint: Option<&'static str>,
-    filters: Option<Vec<&'static str>>,
-    interval: Option<u64>,
-    metrics: Option<Vec<&'static str>>,
-    namespace: Option<&'static str>,
-    period: Option<u64>,
-    proxy_uri: Option<&'static str>,
-    region: Option<&'static str>,
-    role_arn: Option<&'static str>,
-    role_session_name: Option<&'static str>,
-    secret_access_key: Option<&'static str>,
-    session_token: Option<&'static str>,
-    statistics: Option<Vec<&'static str>>,
-    use_ssl: Option<bool>,
+pub struct Cloudwatch {
+    pub access_key_id: Option<&'static str>,
+    pub aws_credentials_file: Option<&'static str>,
+    pub combined: Option<bool>,
+    pub endpoint: Option<&'static str>,
+    pub filters: Option<Vec<&'static str>>,
+    pub interval: Option<u64>,
+    pub metrics: Option<Vec<&'static str>>,
+    pub namespace: Option<&'static str>,
+    pub period: Option<u64>,
+    pub proxy_uri: Option<&'static str>,
+    pub region: Option<&'static str>,
+    pub role_arn: Option<&'static str>,
+    pub role_session_name: Option<&'static str>,
+    pub secret_access_key: Option<&'static str>,
+    pub session_token: Option<&'static str>,
+    pub statistics: Option<Vec<&'static str>>,
+    pub use_ssl: Option<bool>,
 }
 
-impl Default for CloudwatchInput {
+impl Default for Cloudwatch {
     fn default() -> Self {
         Self {
             access_key_id: None,
@@ -49,14 +49,6 @@ impl Default for CloudwatchInput {
             session_token: None,
             statistics: Some(vec!["SampleCount", "Average", "Minimum", "Maximum", "Sum"]),
             use_ssl: Some(true),
-        }
-    }
-}
-
-impl CloudwatchInput {
-    pub fn new() -> Self {
-        Self {
-            ..Default::default()
         }
     }
 }

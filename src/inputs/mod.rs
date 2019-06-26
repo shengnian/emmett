@@ -49,6 +49,7 @@ impl Future for Input {
 }
 
 #[derive(Debug)]
+/// A container of all Input plugins for a Pipeline.
 pub struct InputBlock(pub Vec<Input>);
 
 impl InputBlock {

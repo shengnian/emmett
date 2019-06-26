@@ -1,10 +1,9 @@
-#![allow(unused)]
+// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-sqs.html
 
-/// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-sqs.html
 use std::path::Path;
 
 #[derive(Debug)]
-pub struct SqsInput<'a> {
+pub struct Sqs<'a> {
     access_key_id: Option<&'a str>,
     aws_credentials_file: Option<&'a str>,
     endpoint: Option<&'a str>,
@@ -22,7 +21,7 @@ pub struct SqsInput<'a> {
     threads: Option<u64>,
 }
 
-impl<'a> SqsInput<'a> {
+impl<'a> Sqs<'a> {
     pub fn new(path: &'a Path) -> Self {
         Self {
             access_key_id: None,

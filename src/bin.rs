@@ -1,7 +1,7 @@
+use futures::future::lazy;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
-use futures::future::lazy;
 
 use emmett::Pipeline;
 

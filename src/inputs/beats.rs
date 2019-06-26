@@ -1,28 +1,27 @@
-#![allow(unused)]
-
-/// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-beats.html
+// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-beats.html
 
 #[derive(Debug)]
-pub struct BeatsInput {
-    add_hostname: Option<bool>,
-    cipher_suites: Option<Vec<&'static str>>,
-    client_inactivity_timeout: Option<u64>,
-    host: Option<String>,
-    include_codec_tag: Option<String>,
-    port: Option<String>,
-    ssl: Option<bool>,
-    ssl_certificate: Option<String>,
-    ssl_certificate_authorities: Option<u64>,
-    ssl_handshake_timeout: Option<u64>,
-    ssl_key: Option<String>,
-    ssl_key_passphrase: Option<String>,
-    ssl_verify_mode: Option<u64>,
-    ssl_peer_metadata: Option<u64>,
-    tls_max_version: Option<u64>,
-    tls_min_version: Option<u64>,
+/// This input plugin enables Logstash to receive events from the Elastic Beats framework.
+pub struct Beats {
+    pub add_hostname: Option<bool>,
+    pub cipher_suites: Option<Vec<&'static str>>,
+    pub client_inactivity_timeout: Option<u64>,
+    pub host: Option<String>,
+    pub include_codec_tag: Option<String>,
+    pub port: Option<String>,
+    pub ssl: Option<bool>,
+    pub ssl_certificate: Option<String>,
+    pub ssl_certificate_authorities: Option<u64>,
+    pub ssl_handshake_timeout: Option<u64>,
+    pub ssl_key: Option<String>,
+    pub ssl_key_passphrase: Option<String>,
+    pub ssl_verify_mode: Option<u64>,
+    pub ssl_peer_metadata: Option<u64>,
+    pub tls_max_version: Option<u64>,
+    pub tls_min_version: Option<u64>,
 }
 
-impl Default for BeatsInput {
+impl Default for Beats {
     fn default() -> Self {
         Self {
             add_hostname: None,
@@ -41,14 +40,6 @@ impl Default for BeatsInput {
             ssl_peer_metadata: None,
             tls_max_version: None,
             tls_min_version: None,
-        }
-    }
-}
-
-impl BeatsInput {
-    pub fn new() -> Self {
-        Self {
-            ..Default::default()
         }
     }
 }
