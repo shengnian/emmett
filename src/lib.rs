@@ -1,5 +1,14 @@
+/*!
+
+`emmett` is a simple, unified logging layer.
+
+*/
+
+/// `Filter`s define how to modify the data after it is received from the `Input`s.
 pub mod filters;
+/// `Input`s define the sources of data flow.
 pub mod inputs;
+/// `Output`s define where to send the data to.
 pub mod outputs;
 use filters::*;
 use inputs::*;
@@ -8,6 +17,7 @@ use outputs::*;
 use std::convert::TryFrom;
 
 #[derive(Debug)]
+/// A `Pipeline` defines the flow of data from `Input`s, through `Filter`s, and to `Output`s.
 pub struct Pipeline(pub InputBlock, pub FilterBlock, pub OutputBlock);
 
 /// A `Pipeline` is a set of `Input`s, `Filter`s, and `Output`s.

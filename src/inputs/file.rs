@@ -10,7 +10,7 @@ use std::path::Path;
 
 ///    - Checks whether "closed" or "ignored" files have changed in size since last time and if so puts them in the "watched" state.
 ///    - Selects enough "watched" files to fill the available space in the window, these files are made "active".
-///    - The active files are opened and read, each file is read from the last known position to the end of current content (EOF) by default. 
+///    - The active files are opened and read, each file is read from the last known position to the end of current content (EOF) by default.
 
 /// In some cases it is useful to be able to control which files are read first, sorting, and whether files are read completely or banded/striped. Complete reading is all of file A then file B then file C and so on. Banded or striped reading is some of file A then file B then file C and so on looping around to file A again until all files are read. Banded reading is specified by changing file_chunk_count and perhaps file_chunk_size. Banding and sorting may be useful if you want some events from all files to appear in Kibana as early as possible.
 

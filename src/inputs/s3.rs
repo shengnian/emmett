@@ -120,7 +120,7 @@ pub struct S3 {
 
     /// Whether or not to watch for new files. Disabling this option causes the input to close itself after processing the files from a single listing.
     pub watch_for_new_files: Option<bool>,
-    
+
     pub _sender: Option<UnboundedSender<Value>>,
 }
 

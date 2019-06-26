@@ -1,4 +1,5 @@
 // Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-http_poller.html
+
 use futures::{sync::mpsc::UnboundedSender, try_ready, Async, Poll, Stream};
 use reqwest::{Certificate, Client, Proxy, RedirectPolicy};
 use serde_json::value::Value;
@@ -130,9 +131,9 @@ pub struct HttpPoller {
     pub urls: Vec<Url>,
 
     /// How long to wait before checking for a stale connection to determine if a keepalive request is needed. Consider setting this value lower than the default, possibly to 0, if you get connection errors regularly.
-/// This client is based on Apache Commons' HTTP implementation. Here’s how the Apache Commons documentation describes this option: "Defines period of inactivity in milliseconds after which persistent connections must be re-validated prior to being leased to the consumer. Non-positive value passed to this method disables connection validation. This check helps detect connections that have become stale (half-closed) while kept inactive in the pool."
+    /// This client is based on Apache Commons' HTTP implementation. Here’s how the Apache Commons documentation describes this option: "Defines period of inactivity in milliseconds after which persistent connections must be re-validated prior to being leased to the consumer. Non-positive value passed to this method disables connection validation. This check helps detect connections that have become stale (half-closed) while kept inactive in the pool."
     pub validate_after_inactivity: Option<u64>,
-    
+
     pub _client: Option<Client>,
     pub _sender: Option<UnboundedSender<Value>>,
 }
@@ -159,7 +160,7 @@ impl Default for HttpPoller {
             proxy: None,
             request_timeout: Some(60),
             retry_non_idempotent: Some(false),
-            schedule: Interval::new_interval(Duration::from_millis(2000)),
+            schedule: Interval::new_interval(Duration::from_millis(200)),
             socket_timeout: Some(10),
             target: None,
             truststore: None,
