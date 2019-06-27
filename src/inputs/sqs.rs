@@ -1,28 +1,25 @@
-// Specification: https://www.elastic.co/guide/en/logstash/current/plugins-inputs-sqs.html
-
-use std::path::Path;
-
 #[derive(Debug)]
-pub struct Sqs<'a> {
-    access_key_id: Option<&'a str>,
-    aws_credentials_file: Option<&'a str>,
-    endpoint: Option<&'a str>,
-    id_field: Option<&'a str>,
-    md5_field: Option<&'a str>,
+/// Pull events from an Amazon Web Services Simple Queue Service (SQS) queue.
+pub struct Sqs {
+    access_key_id: Option<String>,
+    aws_credentials_file: Option<String>,
+    endpoint: Option<String>,
+    id_field: Option<String>,
+    md5_field: Option<String>,
     polling_frequency: Option<u64>,
-    proxy_uri: Option<&'a str>,
-    queue: Option<&'a str>,
-    region: Option<&'a str>,
-    role_arn: Option<&'a str>,
-    role_session_name: Option<&'a str>,
-    secret_access_key: Option<&'a str>,
-    sent_timestamp_field: Option<&'a str>,
-    session_token: Option<&'a str>,
+    proxy_uri: Option<String>,
+    queue: Option<String>,
+    region: Option<String>,
+    role_arn: Option<String>,
+    role_session_name: Option<String>,
+    secret_access_key: Option<String>,
+    sent_timestamp_field: Option<String>,
+    session_token: Option<String>,
     threads: Option<u64>,
 }
 
-impl<'a> Sqs<'a> {
-    pub fn new(path: &'a Path) -> Self {
+impl Sqs {
+    pub fn new() -> Self {
         Self {
             access_key_id: None,
             aws_credentials_file: None,
@@ -32,9 +29,9 @@ impl<'a> Sqs<'a> {
             polling_frequency: Some(20),
             proxy_uri: None,
             queue: None,
-            region: Some("us-east-1"),
+            region: Some("us-east-1".to_string()),
             role_arn: None,
-            role_session_name: Some("logstash"),
+            role_session_name: Some("logstash".to_string()),
             secret_access_key: None,
             sent_timestamp_field: None,
             session_token: None,
