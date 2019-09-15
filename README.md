@@ -5,8 +5,7 @@
 
 # About
 
-emmett is a unified logging layer with the goal of serving as a drop-in [Logstash](https://www.elastic.co/products/logstash) replacement as well as
-providing added / improved features.
+**emmett** is a functional, composable ETL library.
 
 emmett is written in [Rust](https://www.rust-lang.org/) and uses [Tokio](https://tokio.rs/), which means:
 
