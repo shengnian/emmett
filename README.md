@@ -5,9 +5,7 @@
 
 # About
 
-**emmett** is a functional, composable ETL library.
-
-emmett is written in [Rust](https://www.rust-lang.org/) and uses [Tokio](https://tokio.rs/), which means:
+**emmett** is a functional, composable ETL library written in [Rust](https://www.rust-lang.org/), which means:
 
 - Blazing fast ⚡⚡⚡
 - Very small resource requirements (currently needs less than 3 MB RAM for simple pipelines)
