@@ -1,8 +1,7 @@
-[API Docs](https://docs.rs/emmett/*/emmett/)
-
-![Crates.io](https://img.shields.io/crates/v/emmett.svg)
-![Gitlab pipeline status (branch)](https://img.shields.io/gitlab/pipeline/andrewbanchich/emmett/master.svg)
-![Crates.io](https://img.shields.io/crates/d/emmett.svg)
+[![API Docs](https://docs.rs/emmett/badge.svg)](https://docs.rs/emmett)
+[![Crates.io](https://img.shields.io/crates/v/emmett.svg)](https://crates.io/crates/emmett)
+[![Gitlab pipeline status (branch)](https://img.shields.io/gitlab/pipeline/andrewbanchich/emmett/master.svg)](https://gitlab.com/andrewbanchich/emmett)
+[![Crates.io](https://img.shields.io/crates/d/emmett.svg)](https://crates.io/crates/emmett)
 
 # About
 
